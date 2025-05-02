@@ -5,10 +5,23 @@
     <title>Register</title>
 </head>
 <body>
-register...
+go back...
 
 <a href="/home">home</a>
-<a href="/login">login</a>
+<h1>Register</h1>
+<form method="post" action="/register">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <span th:if="${error}" style="color:red" th:text="${error}"></span>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Register</button>
+</form>
+<p>Already have an account? <a href="/login">Login here</a></p>
 
 </body>
 </html>
