@@ -25,5 +25,16 @@ public class User {
     @Column(name = "date")
     private Date date;
 
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
 
