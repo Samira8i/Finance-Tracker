@@ -1,5 +1,6 @@
 package com.team.tracker.financetracker.controller;
 
+import com.team.tracker.financetracker.repository.UserRepository;
 import com.team.tracker.financetracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,37 +15,35 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserRepository userRepository) {
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<HttpStatus> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
 
-//        if (userRepository.existsByUsername(username)){
-//            model.addAttribute("error", "Username already exists");
-//        }
-//
-//        if (username == null || username.trim().isEmpty()) {
-//            model.addAttribute("error", "User name cannot be empty.");
-//            return "/register";
-//        }
-//
-//        if (password == null || password.trim().isEmpty()) {
-//            model.addAttribute("error", "Password cannot be empty.");
-//            return "/register";
-//        }
-//
-//        User user = new User(username, bCryptPasswordEncoder.encode(password));
-//        userRepository.save(user);
+        if (user.getUsername().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Имя пользователя не может быть пустым");
+        }
 
-        userService.save(user);
+        if (user.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Пароль не может быть пустым");
+        }
 
-        return ResponseEntity.ok(HttpStatus.OK);
+        if (userRepository.existsByUsername(user.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Имя пользователя уже занято");
+        }
+
+        try {
+            userService.save(user);
+            return ResponseEntity.ok("Пользователь успешно зарегистрирован");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ошибка при регистрации");
+        }
     }
 }
 
-//rest controller
-//todo requestBody

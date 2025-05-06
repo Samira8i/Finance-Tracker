@@ -23,6 +23,10 @@ public class UserService {
 
     @Transactional
     public void save(User user) {
+
+        String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
+
         userRepository.save(user);
     }
 }
