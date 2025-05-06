@@ -3,7 +3,7 @@ package com.team.tracker.financetracker.model;
 
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -21,12 +21,18 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "date")
-    private Date date;
+    private LocalDate creationDate;
 
-    public void setDate(Date date) {
-        this.date = date;
+    public User(String username, String password) {
+        setUsername(username);
+        setPassword(password);
+        setCreationDate(LocalDate.now());
+
+    }
+
+    public void setCreationDate(LocalDate creationDate) {
+        this.creationDate = creationDate;
     }
 
     public void setPassword(String password) {
@@ -37,4 +43,4 @@ public class User {
         this.username = username;
     }
 }
-// todo localDateTime, createdDate
+
