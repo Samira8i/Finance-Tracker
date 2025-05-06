@@ -1,62 +1,49 @@
 package com.team.tracker.financetracker.controller;
 
-
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.ui.Model;
-import com.team.tracker.financetracker.model.User;
 import com.team.tracker.financetracker.repository.UserRepository;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.team.tracker.financetracker.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import com.team.tracker.financetracker.model.User;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import java.util.Date;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 
-@Controller
+@RestController
 public class UserController {
 
+    private final UserService userService;
     private final UserRepository userRepository;
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    public UserController(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    @Autowired
+    public UserController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
-
-    @GetMapping("/home")
-    public String homePage() {
-        return "home";
-    }
-
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-
-    @GetMapping("/register")
-    public String registerPage() {
-        return "register";
     }
 
     @PostMapping("/register")
-    public void registerUser(@RequestParam String username, @RequestParam String password, Model model) {
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
 
-        if (userRepository.existsByUsername(username)){
-            model.addAttribute("error", "Username already exists"); //для вывода ошибки
+        if (user.getUsername().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Имя пользователя не может быть пустым");
         }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(bCryptPasswordEncoder.encode(password));//Bcrypt
-        user.setDate(new Date());
-        userRepository.save(user);
+        if (user.getPassword().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Пароль не может быть пустым");
+        }
 
+        if (userRepository.existsByUsername(user.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Имя пользователя уже занято");
+        }
 
+        try {
+            userService.save(user);
+            return ResponseEntity.ok("Пользователь успешно зарегистрирован");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ошибка при регистрации");
+        }
     }
 }
-//todo авторизщация регистрация / навигация
-//todo перенести логику в
-//бэк только на апи без навигации
-//rest controller
-//todo requestBody
+
