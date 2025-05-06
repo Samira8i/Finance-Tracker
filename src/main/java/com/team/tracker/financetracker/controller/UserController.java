@@ -1,7 +1,7 @@
 package com.team.tracker.financetracker.controller;
 
 
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
 import com.team.tracker.financetracker.model.User;
 import com.team.tracker.financetracker.repository.UserRepository;
@@ -17,8 +17,11 @@ public class UserController {
 
     private final UserRepository userRepository;
 
-    public UserController(UserRepository userRepository) {
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public UserController(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @GetMapping("/home")
@@ -37,19 +40,23 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String password, Model model) {
+    public void registerUser(@RequestParam String username, @RequestParam String password, Model model) {
 
         if (userRepository.existsByUsername(username)){
             model.addAttribute("error", "Username already exists"); //для вывода ошибки
-            return "register";
         }
 
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(bCryptPasswordEncoder.encode(password));//Bcrypt
         user.setDate(new Date());
         userRepository.save(user);
 
-        return "redirect:/login";
+
     }
 }
+//todo авторизщация регистрация / навигация
+//todo перенести логику в
+//бэк только на апи без навигации
+//rest controller
+//todo requestBody
