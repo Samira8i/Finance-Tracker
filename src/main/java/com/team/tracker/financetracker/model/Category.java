@@ -6,26 +6,26 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table (name = "Categories")
-public class Categories {
+@Table (name = "category")
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", columnDefinition = "uuid")
     private UUID id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "color", nullable = false)
+    @Column(name = "color", unique = true, nullable = false)
     //@Pattern(regexp = "^#[0-9A-Fa-f]{6}$") по идее не нужно т.к. сами данные задаем
     private String color;
 
-    @Column(name = "categoryType")
+    @Column(name = "category_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private CategoryType categoryType;
 
-    public Categories(String name, String color, CategoryType categoryType) {
+    public Category(String name, String color, CategoryType categoryType) {
         this.name = name;
         this.color = color;
         this.categoryType = categoryType;
