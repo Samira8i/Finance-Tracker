@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Баланс | Трекер финансов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+          href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../static/style_index.css" />
+  <!-- Подключение библиотеки Chart.js для графиков (надеюсь можно использовать)-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<!-- Боковое меню -->
+<div class="side-menu">
+  <div class="menu-item" title="Добавить операцию">
+    <img src="../media/plus.png" alt="" />
+  </div>
+  <div class="menu-item active" title="Дом">
+    <img src="../media/home.png" alt="" />
+  </div>
+  <a href="history.html"> <div class="menu-item" title="История">
+    <img src="../media/history.png" alt="" />
+  </div></a>
+  <a href="main.html"><div class="menu-item" title="Выход">
+    <img src="../media/exit.png" alt="" />
+  </div></a>
+</div>
+
+<div class="container">
+  <div class="balance-header">
+    <h1 class="balance-title">Баланс</h1>
+  </div>
+
+  <div class="balance-amount">786 345,96 ₽</div>
+
+  <div class="balance-change">
+    <span>+10 000 ₽ за месяц</span>
+  </div>
+
+  <!-- Комбинированный график сверху -->
+  <div class="main-chart-container">
+    <div class="chart-box combined-chart">
+      <div class="chart-title">Доходы и расходы</div>
+      <div class="chart-wrapper">
+        <canvas id="combinedChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Круговые диаграммы рядом -->
+  <div class="pie-charts-container">
+    <div class="chart-box">
+      <div class="chart-title">Доходы по категориям</div>
+      <div class="chart-wrapper">
+        <canvas id="incomeChart"></canvas>
+      </div>
+      <div class="pie-period-selector">
+        <button class="pie-period-btn" data-period="day">День</button>
+        <button class="pie-period-btn active" data-period="week">Неделя</button>
+        <button class="pie-period-btn" data-period="month">Месяц</button>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-title">Расходы по категориям</div>
+      <div class="chart-wrapper">
+        <canvas id="expenseChart"></canvas>
+      </div>
+      <div class="pie-period-selector">
+        <button class="pie-period-btn" data-period="day">День</button>
+        <button class="pie-period-btn active" data-period="week">Неделя</button>
+        <button class="pie-period-btn" data-period="month">Месяц</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="categories">
+    <div class="category-section">
+      <h2 class="category-title">ДОХОД</h2>
+      <ul class="category-list">
+        <li class="category-item">Вклад <span>45 000 ₽</span></li>
+        <li class="category-item">Бизнес <span>32 000 ₽</span></li>
+        <li class="category-item">Зарплата <span>120 000 ₽</span></li>
+        <li class="category-item">Аренда <span>25 000 ₽</span></li>
+        <li class="category-item">Криптовалюта <span>8 500 ₽</span></li>
+        <li class="category-item">Другое <span>5 200 ₽</span></li>
+      </ul>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">РАСХОД</h2>
+      <ul class="category-list">
+        <li class="category-item">Дом <span>35 000 ₽</span></li>
+        <li class="category-item">Продукты <span>18 000 ₽</span></li>
+        <li class="category-item">Хобби <span>12 000 ₽</span></li>
+        <li class="category-item">Кафе <span>8 500 ₽</span></li>
+        <li class="category-item">Здоровье <span>6 200 ₽</span></li>
+        <li class="category-item">Другое <span>4 300 ₽</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для добавления операций -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div class="tabs">
+      <div class="tab" data-tab="income">Доход</div>
+      <div class="tab active" data-tab="expense">Расход</div>
+    </div>
+
+    <input type="number" class="amount-input" placeholder="Введите сумму">
+
+    <div class="modal-categories" id="modalCategories">
+      <!-- Категории будут подгружаться динамически -->
+    </div>
+
+    <button class="submit-btn">Отправить</button>
+  </div>
+</div>
+
+<script>
+  const combinedCtx = document.getElementById('combinedChart').getContext('2d');
+  const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+  const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+
+
+  const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+
+  // Комбинированный график доходов и расходов по месяцам
+  const combinedChart = new Chart(combinedCtx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Доходы',
+          data: [85000, 92000, 105000, 88000, 115000, 125000, 95000, 110000, 105000, 120000, 115000, 130000],
+          backgroundColor: '#91fabb',
+          borderColor: '#85bf97',
+          borderWidth: 1,
+          borderRadius: 5
+        },
+        {
+          label: 'Расходы',
+          data: [45000, 50000, 55000, 48000, 52000, 60000, 65000, 58000, 62000, 70000, 68000, 75000],
+          backgroundColor: '#ff6b62',
+          borderColor: '#c85a50',
+          borderWidth: 1,
+          borderRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            font: {
+              family: 'Manrope',
+              size: 14,
+              weight: 500
+            },
+            padding: 20,
+            usePointStyle: true,
+          }
+        },
+        tooltip: {
+          bodyFont: {
+            family: 'Manrope',
+            size: 14,
+            weight: 400
+          },
+          titleFont: {
+            family: 'Manrope',
+            size: 16,
+            weight: 600
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            font: {
+              family: 'Manrope',
+              size: 12,
+              weight: 500
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            font: {
+              family: 'Manrope',
+              size: 14,
+              weight: 500
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Данные для круговых диаграмм по периодам
+  const pieData = {
+    income: {
+      day: {
+        labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+        data: [5000, 2000, 30000, 5000, 1000, 800],
+        colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+      },
+      week: {
+        labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+        data: [45000, 32000, 120000, 25000, 8500, 5200],
+        colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+      },
+      month: {
+        labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+        data: [180000, 128000, 480000, 100000, 34000, 20800],
+        colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+      }
+    },
+    expense: {
+      day: {
+        labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+        data: [2000, 1500, 800, 1200, 500, 300],
+        colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+      },
+      week: {
+        labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+        data: [35000, 18000, 12000, 8500, 6200, 4300],
+        colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+      },
+      month: {
+        labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+        data: [140000, 72000, 48000, 34000, 24800, 17200],
+        colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+      }
+    }
+  };
+
+  // График доходов (круговая диаграмма)
+  const incomeChart = new Chart(incomeCtx, {
+    type: "doughnut",
+    data: {
+      labels: pieData.income.week.labels,
+      datasets: [
+        {
+          data: pieData.income.week.data,
+          backgroundColor: pieData.income.week.colors,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            font: {
+              family: "Manrope",
+              size: 12,
+              weight: 500,
+            },
+            padding: 20,
+            usePointStyle: true,
+            pointStyle: "circle",
+          },
+        },
+      },
+      cutout: "70%",
+    },
+  });
+
+  // График расходов (круговая диаграмма)
+  const expenseChart = new Chart(expenseCtx, {
+    type: "doughnut",
+    data: {
+      labels: pieData.expense.week.labels,
+      datasets: [
+        {
+          data: pieData.expense.week.data,
+          backgroundColor: pieData.expense.week.colors,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            font: {
+              family: "Manrope",
+              size: 12,
+              weight: 500,
+            },
+            padding: 20,
+            usePointStyle: true,
+            pointStyle: "circle",
+          },
+        },
+      },
+      cutout: "70%",
+    },
+  });
+
+  // Переключение периодов для круговых диаграмм
+  const piePeriodBtns = document.querySelectorAll('.pie-period-btn');
+  piePeriodBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Удаляем active у всех кнопок в этом блоке
+      const parent = this.closest('.pie-period-selector');
+      parent.querySelectorAll('.pie-period-btn').forEach(b => b.classList.remove('active'));
+      // Добавляем active текущей кнопке
+      this.classList.add('active');
+
+      const period = this.dataset.period;
+      const chartType = this.closest('.chart-box').querySelector('canvas').id.includes('income') ? 'income' : 'expense'; //находим нужную диаграмму
+
+      // Обновляем соответствующую диаграмму
+      if (chartType === 'income') {
+        incomeChart.data.labels = pieData.income[period].labels;
+        incomeChart.data.datasets[0].data = pieData.income[period].data;
+        incomeChart.data.datasets[0].backgroundColor = pieData.income[period].colors;
+        incomeChart.update();
+      } else {
+        expenseChart.data.labels = pieData.expense[period].labels;
+        expenseChart.data.datasets[0].data = pieData.expense[period].data;
+        expenseChart.data.datasets[0].backgroundColor = pieData.expense[period].colors;
+        expenseChart.update();
+      }
+    });
+  });
+
+  // Переключение пунктов меню
+  const menuItems = document.querySelectorAll(".menu-item");
+  menuItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      menuItems.forEach((i) => i.classList.remove("active"));
+      item.classList.add("active");
+    });
+  });
+
+  // Модальное окно для добавления операций
+  const categories = {
+    income: [
+      {name: "зарплата", color: "#81E472"},
+      {name: "вклад", color: "#FFF8A5"},
+      {name: "бизнес", color: "#A7BDEE"},
+      {name: "криптовалюта", color: "#EEA7A8"},
+      {name: "аренда", color: "#D6A7EE"},
+      {name: "другое", color: "#4C5BCF"}
+    ],
+    expense: [
+      {name: "продукты", color: "#B3EEA7"},
+      {name: "здоровье", color: "#A7ECEE"},
+      {name: "дом", color: "#E2A7EE"},
+      {name: "хобби", color: "#EEA7A8"},
+      {name: "кафе", color: "#A7ECEE"},
+      {name: "другое", color: "#EEEDA7"}
+    ]
+  };
+
+  const modal = document.getElementById('modal');
+  const tabs = document.querySelectorAll('.tab');
+  const modalCategories = document.getElementById('modalCategories');
+  let selectedCategory = null;
+
+  // Открытие модального окна при клике на кнопку "+"
+  const plusButton = document.querySelector('.menu-item:nth-child(1)');
+  const homeButton = document.querySelector('.menu-item:nth-child(2)');
+
+  plusButton.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    // Сбрасываем активные вкладки
+    tabs.forEach(t => t.classList.remove('active'));
+    // Активируем вкладку "Расход"
+    tabs[1].classList.add('active');
+
+    // Сбрасываем выбранную категорию
+    selectedCategory = null;
+
+    showCategories('expense'); // Всегда показываем расходы по умолчанию
+  });
+
+  // Закрытие модального окна при клике вне его
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+      // Возвращаем активность на иконку с домом
+      menuItems.forEach((i) => i.classList.remove("active"));
+      homeButton.classList.add("active");
+    }
+  });
+
+
+  // Переключение между вкладками (доход/расход)
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const tabType = tab.getAttribute('data-tab');
+      showCategories(tabType);
+      // Сбрасываем выбранную категорию при переключении вкладок
+      selectedCategory = null;
+    });
+  });
+
+  // Показ категорий в зависимости от выбранной вкладки
+  function showCategories(type) {
+    modalCategories.innerHTML = '';
+
+    categories[type].forEach((category, index) => {
+      const categoryElement = document.createElement('div');
+      categoryElement.className = 'modal-category';
+      categoryElement.innerHTML = `
+            <div class="category-circle" style="background-color: ${category.color}"></div>
+            ${category.name}
+          `;
+
+      // Обработчик выбора категории
+      categoryElement.addEventListener('click', () => {
+        // Убираем выделение у всех категорий
+        document.querySelectorAll('.modal-category').forEach(cat => {
+          cat.classList.remove('selected');
+        });
+        // Добавляем выделение выбранной
+        categoryElement.classList.add('selected');
+        selectedCategory = category.name;
+      });
+
+      modalCategories.appendChild(categoryElement);
+    });
+  }
+</script>
+</body>
+</html>
