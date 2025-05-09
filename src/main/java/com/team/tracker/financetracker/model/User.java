@@ -24,6 +24,9 @@ public class User {
     @Column(name = "date")
     private LocalDate creationDate;
 
+    public User(){
+
+    }
     public User(String username, String password) {
         setUsername(username);
         setPassword(password);
