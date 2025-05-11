@@ -41,7 +41,7 @@ public class UserController {
             return ResponseEntity.internalServerError().body("Ошибка при регистрации");
         }
     }
-    @PostMapping("/login") //todo userService.login
+    @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User inputUser){
         try {
 
