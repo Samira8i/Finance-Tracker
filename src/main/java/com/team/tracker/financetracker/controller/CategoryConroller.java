@@ -23,5 +23,4 @@ public class CategoryConroller {
     public List<Category> getCategoriesByType(@RequestParam CategoryType categoryType) {
         return categoryService.getCategoriesByType(categoryType);
     }
-
 }
