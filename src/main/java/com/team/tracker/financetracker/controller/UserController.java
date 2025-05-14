@@ -17,12 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
+
 
     @Autowired
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
@@ -36,13 +35,8 @@ public class UserController {
             return ResponseEntity.badRequest().body("Пароль не может быть пустым");
         }
 
-        if (userRepository.existsByUsername(user.getUsername())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Имя пользователя уже занято");
-        }
-
         try {
-            userService.save(user);
-            return ResponseEntity.ok("Пользователь успешно зарегистрирован");
+            return ResponseEntity.ok(userService.save(user));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Ошибка при регистрации");
         }

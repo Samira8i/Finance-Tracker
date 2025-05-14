@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Баланс | Трекер финансов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../static/style_index.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<!-- Боковое меню -->
+<div class="side-menu">
+  <div class="menu-item" title="Добавить операцию" id="addOperationBtn">
+    <img src="../media/plus.png" alt="" />
+  </div>
+  <div class="menu-item active" title="Дом">
+    <img src="../media/home.png" alt="" />
+  </div>
+  <a href="history.html"> <div class="menu-item" title="История">
+    <img src="../media/history.png" alt="" />
+  </div></a>
+  <a href="main.html"><div class="menu-item" title="Выход">
+    <img src="../media/exit.png" alt="" />
+  </div></a>
+</div>
+
+<div class="container">
+  <div class="balance-header">
+    <h1 class="balance-title">Баланс</h1>
+  </div>
+
+  <div class="balance-amount" id="balanceAmount">786 345,96 ₽</div>
+
+  <div class="balance-change" id="balanceChange">
+    <span>+10 000 ₽ за месяц</span>
+  </div>
+
+  <!-- Комбинированный график сверху -->
+  <div class="main-chart-container">
+    <div class="chart-box combined-chart">
+      <div class="chart-title">Доходы и расходы</div>
+      <div class="chart-wrapper">
+        <canvas id="combinedChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Круговые диаграммы рядом -->
+  <div class="pie-charts-container">
+    <div class="chart-box">
+      <div class="chart-title">Доходы по категориям</div>
+      <div class="chart-wrapper">
+        <canvas id="incomeChart"></canvas>
+      </div>
+      <div class="pie-period-selector">
+        <button class="pie-period-btn" data-period="day">День</button>
+        <button class="pie-period-btn active" data-period="week">Неделя</button>
+        <button class="pie-period-btn" data-period="month">Месяц</button>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-title">Расходы по категориям</div>
+      <div class="chart-wrapper">
+        <canvas id="expenseChart"></canvas>
+      </div>
+      <div class="pie-period-selector">
+        <button class="pie-period-btn" data-period="day">День</button>
+        <button class="pie-period-btn active" data-period="week">Неделя</button>
+        <button class="pie-period-btn" data-period="month">Месяц</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="categories">
+    <div class="category-section">
+      <h2 class="category-title">ДОХОД</h2>
+      <ul class="category-list" id="incomeCategories">
+        <li class="category-item">Вклад <span>45 000 ₽</span></li>
+        <li class="category-item">Бизнес <span>32 000 ₽</span></li>
+        <li class="category-item">Зарплата <span>120 000 ₽</span></li>
+        <li class="category-item">Аренда <span>25 000 ₽</span></li>
+        <li class="category-item">Криптовалюта <span>8 500 ₽</span></li>
+        <li class="category-item">Другое <span>5 200 ₽</span></li>
+      </ul>
+    </div>
+
+    <div class="category-section">
+      <h2 class="category-title">РАСХОД</h2>
+      <ul class="category-list" id="expenseCategories">
+        <li class="category-item">Дом <span>35 000 ₽</span></li>
+        <li class="category-item">Продукты <span>18 000 ₽</span></li>
+        <li class="category-item">Хобби <span>12 000 ₽</span></li>
+        <li class="category-item">Кафе <span>8 500 ₽</span></li>
+        <li class="category-item">Здоровье <span>6 200 ₽</span></li>
+        <li class="category-item">Другое <span>4 300 ₽</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для добавления операций -->
+<div class="modal" id="operationModal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+
+    <div class="tabs">
+      <div class="tab" data-tab="income">Доход</div>
+      <div class="tab active" data-tab="expense">Расход</div>
+    </div>
+
+    <input type="number" class="amount-input" id="operationAmount" placeholder="Введите сумму">
+
+    <div class="modal-categories" id="modalCategories">
+      <!-- Категории будут подгружаться -->
+    </div>
+
+    <button class="submit-btn" id="submitOperation">Отправить</button>
+  </div>
+</div>
+
+<script>
+  // Конфигурация
+  const MOCK_MODE = true; // Режим моковых данных (true-используются моковые данные)
+  const API_BASE_URL = 'http://localhost:8080/api/v1'; // позже поменять
+
+  // Моковые данные
+  const MOCK_DATA = {
+    balance: {
+      amount: 786345.96,
+      change: 10000
+    },
+    categories: {
+      income: [
+        { id: 1, name: "Вклад", amount: 45000, color: "#FFF8A5" },
+        { id: 2, name: "Бизнес", amount: 32000, color: "#A7BDEE" },
+        { id: 3, name: "Зарплата", amount: 120000, color: "#81E472" },
+        { id: 4, name: "Аренда", amount: 25000, color: "#D6A7EE" },
+        { id: 5, name: "Криптовалюта", amount: 8500, color: "#EEA7A8" },
+        { id: 6, name: "Другое", amount: 5200, color: "#4C5BCF" }
+      ],
+      expense: [
+        { id: 101, name: "Дом", amount: 35000, color: "#E2A7EE" },
+        { id: 102, name: "Продукты", amount: 18000, color: "#B3EEA7" },
+        { id: 103, name: "Хобби", amount: 12000, color: "#EEA7A8" },
+        { id: 104, name: "Кафе", amount: 8500, color: "#EEC6A7" },
+        { id: 105, name: "Здоровье", amount: 6200, color: "#A7ECEE" },
+        { id: 106, name: "Другое", amount: 4300, color: "#EEEDA7" }
+      ]
+    },
+    statistics: {
+      week: {
+        combined: {
+          labels: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+          income: [15000, 18000, 12000, 20000, 25000, 5000, 8000],
+          expense: [8000, 9500, 6000, 12000, 15000, 12000, 5000]
+        },
+        income: {
+          labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+          data: [45000, 32000, 120000, 25000, 8500, 5200],
+          colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+        },
+        expense: {
+          labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+          data: [35000, 18000, 12000, 8500, 6200, 4300],
+          colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+        }
+      },
+      month: {
+        combined: {
+          labels: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"],
+          income: [85000, 92000, 105000, 88000, 115000, 125000, 95000, 110000, 105000, 120000, 115000, 130000],
+          expense: [45000, 50000, 55000, 48000, 52000, 60000, 65000, 58000, 62000, 70000, 68000, 75000]
+        },
+        income: {
+          labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+          data: [180000, 128000, 480000, 100000, 34000, 20800],
+          colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+        },
+        expense: {
+          labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+          data: [140000, 72000, 48000, 34000, 24800, 17200],
+          colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+        }
+      },
+      day: {
+        income: {
+          labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
+          data: [5000, 2000, 30000, 5000, 1000, 800],
+          colors: ["#FFF8A5", "#A7BDEE", "#81E472", "#D6A7EE", "#EEA7A8", "#4C5BCF"]
+        },
+        expense: {
+          labels: ["Дом", "Продукты", "Хобби", "Кафе", "Здоровье", "Другое"],
+          data: [2000, 1500, 800, 1200, 500, 300],
+          colors: ["#E2A7EE", "#B3EEA7", "#EEA7A8", "#EEC6A7", "#A7ECEE", "#EEEDA7"]
+        }
+      }
+    }
+  };
+
+  const AppState = {
+    currentPeriod: 'week',
+    charts: {
+      combined: null,
+      income: null,
+      expense: null
+    }
+  };
+
+  // Инициализация при загрузке
+  $(document).ready(function() {
+    initCharts();
+    loadData();
+    setupEventListeners();
+  });
+
+  // Инициализация графиков
+  function initCharts() {
+    AppState.charts.combined = new Chart(
+            document.getElementById('combinedChart').getContext('2d'),
+            {
+              type: 'bar',
+              data: {
+                labels: MOCK_DATA.statistics.month.combined.labels,
+                datasets: [
+                  {
+                    label: 'Доходы',
+                    backgroundColor: '#91fabb',
+                    borderColor: '#85bf97',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    data: MOCK_DATA.statistics.month.combined.income
+                  },
+                  {
+                    label: 'Расходы',
+                    backgroundColor: '#ff6b62',
+                    borderColor: '#c85a50',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    data: MOCK_DATA.statistics.month.combined.expense
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                    labels: {
+                      font: {
+                        family: 'Manrope',
+                        size: 14,
+                        weight: 500
+                      },
+                      padding: 20,
+                      usePointStyle: true,
+                    }
+                  },
+                  tooltip: {
+                    bodyFont: {
+                      family: 'Manrope',
+                      size: 14,
+                      weight: 400
+                    },
+                    titleFont: {
+                      family: 'Manrope',
+                      size: 16,
+                      weight: 600
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                      font: {
+                        family: 'Manrope',
+                        size: 12,
+                        weight: 500
+                      }
+                    }
+                  },
+                  x: {
+                    grid: {
+                      display: false
+                    },
+                    ticks: {
+                      font: {
+                        family: 'Manrope',
+                        size: 14,
+                        weight: 500
+                      }
+                    }
+                  }
+                }
+              }
+            }
+    );
+
+    AppState.charts.income = new Chart(
+            document.getElementById('incomeChart').getContext('2d'),
+            {
+              type: "doughnut",
+              data: {
+                labels: MOCK_DATA.statistics.week.income.labels,
+                datasets: [{
+                  data: MOCK_DATA.statistics.week.income.data,
+                  backgroundColor: MOCK_DATA.statistics.week.income.colors,
+                  borderWidth: 1,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      font: {
+                        family: "Manrope",
+                        size: 12,
+                        weight: 500,
+                      },
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: "circle",
+                    },
+                  },
+                },
+                cutout: "70%",
+              }
+            }
+    );
+
+    AppState.charts.expense = new Chart(
+            document.getElementById('expenseChart').getContext('2d'),
+            {
+              type: "doughnut",
+              data: {
+                labels: MOCK_DATA.statistics.week.expense.labels,
+                datasets: [{
+                  data: MOCK_DATA.statistics.week.expense.data,
+                  backgroundColor: MOCK_DATA.statistics.week.expense.colors,
+                  borderWidth: 1,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      font: {
+                        family: "Manrope",
+                        size: 12,
+                        weight: 500,
+                      },
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: "circle",
+                    },
+                  },
+                },
+                cutout: "70%",
+              }
+            }
+    );
+  }
+
+  // Загрузка данных
+  function loadData() {
+    if (MOCK_MODE) {
+      updateUI(MOCK_DATA);
+    } else {
+      $.when(
+              fetchBalance(),
+              fetchCategories()
+      ).done(function(balance, categories) {
+        updateUI({
+          balance: balance,
+          categories: categories,
+          statistics: MOCK_DATA.statistics // Графики пока на моках
+        });
+      }).fail(function() {
+        console.error('Ошибка загрузки данных');
+      });
+    }
+  }
+
+  // API функции
+  function fetchBalance() {
+    if (MOCK_MODE) return MOCK_DATA.balance;
+    return $.get(`${API_BASE_URL}/balance`).then(response => response.data);
+  }
+
+  function fetchCategories() {
+    if (MOCK_MODE) return MOCK_DATA.categories;
+    return $.get(`${API_BASE_URL}/categories`).then(response => response.data);
+  }
+
+  function postOperation(operationData) {
+    if (MOCK_MODE) {
+      console.log('Моковая операция:', operationData);
+      return { status: 'success' };
+    }
+    return $.ajax({
+      url: `${API_BASE_URL}/operations`,
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(operationData)
+    });
+  }
+
+  // Обновление UI
+  function updateUI(data) {
+    updateBalance(data.balance);
+    updateCategories(data.categories);
+  }
+
+  function updateBalance(balance) {
+    $('#balanceAmount').text(`${balance.amount.toLocaleString('ru-RU')} ₽`);
+    const changeText = balance.change >= 0 ?
+            `+${balance.change.toLocaleString('ru-RU')} ₽` :
+            `${balance.change.toLocaleString('ru-RU')} ₽`;
+    $('#balanceChange span').text(`${changeText} за месяц`);
+  }
+
+  function updateCategories(categories) {
+    // Доходы
+    let incomeHtml = '';
+    categories.income.forEach(cat => {
+      incomeHtml += `
+            <li class="category-item">
+                ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+            </li>
+        `;
+    });
+    $('#incomeCategories').html(incomeHtml);
+
+    // Расходы
+    let expenseHtml = '';
+    categories.expense.forEach(cat => {
+      expenseHtml += `
+            <li class="category-item">
+                ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+            </li>
+        `;
+    });
+    $('#expenseCategories').html(expenseHtml);
+  }
+
+  // Обработчики событий
+  function setupEventListeners() {
+    // Открытие модального окна
+    $('#addOperationBtn').click(function() {
+      $('#operationModal').show();
+      loadCategories($('.tab.active').data('tab'));
+    });
+
+    // Закрытие модального окна
+    $('.close, #operationModal').click(function(e) {
+      if (e.target === this || $(e.target).hasClass('close')) {
+        $('#operationModal').hide();
+      }
+    });
+
+    // Переключение вкладок
+    $('.tab').click(function() {
+      $('.tab').removeClass('active');
+      $(this).addClass('active');
+      loadCategories($(this).data('tab'));
+    });
+
+    // Отправка операции
+    $('#submitOperation').click(handleOperationSubmit);
+
+    // Переключение периодов
+    $('.pie-period-btn').click(function() {
+      const period = $(this).data('period');
+      $('.pie-period-btn').removeClass('active');
+      $(this).addClass('active');
+      updateCharts(period);
+    });
+  }
+
+  function loadCategories(type) {
+    if (MOCK_MODE) {
+      showCategories(MOCK_DATA.categories[type]);
+    } else {
+      fetchCategories().then(function(categories) {
+        showCategories(categories[type]);
+      });
+    }
+  }
+
+  function showCategories(categories) {
+    let html = '';
+    categories.forEach(cat => {
+      html += `
+            <div class="modal-category" data-id="${cat.id}">
+                <div class="category-circle" style="background-color: ${cat.color}"></div>
+                ${cat.name}
+            </div>
+        `;
+    });
+    $('#modalCategories').html(html);
+
+    // Выбор категории
+    $('.modal-category').click(function() {
+      $('.modal-category').removeClass('selected');
+      $(this).addClass('selected');
+    });
+  }
+
+  function updateCharts(period) {
+    // Обновляем данные графиков для выбранного периода
+    const stats = MOCK_DATA.statistics[period];
+
+    // Комбинированный график
+    if (period === 'month') {
+      AppState.charts.combined.data.labels = stats.combined.labels;
+      AppState.charts.combined.data.datasets[0].data = stats.combined.income;
+      AppState.charts.combined.data.datasets[1].data = stats.combined.expense;
+      AppState.charts.combined.update();
+    }
+
+    // Доходы
+    AppState.charts.income.data.labels = stats.income.labels;
+    AppState.charts.income.data.datasets[0].data = stats.income.data;
+    AppState.charts.income.data.datasets[0].backgroundColor = stats.income.colors;
+    AppState.charts.income.update();
+
+    // Расходы
+    AppState.charts.expense.data.labels = stats.expense.labels;
+    AppState.charts.expense.data.datasets[0].data = stats.expense.data;
+    AppState.charts.expense.data.datasets[0].backgroundColor = stats.expense.colors;
+    AppState.charts.expense.update();
+  }
+
+  function handleOperationSubmit() {
+    const amount = parseFloat($('#operationAmount').val());
+    const type = $('.tab.active').data('tab');
+    const categoryId = $('.modal-category.selected').data('id');
+
+    if (!validateOperation(amount, categoryId)) return;
+
+    const operationData = {
+      amount: amount,
+      type: type,
+      categoryId: categoryId,
+      date: new Date().toISOString()
+    };
+
+    postOperation(operationData).then(function() {
+      $('#operationModal').hide();
+      if (!MOCK_MODE) {
+        loadData(); // Обновляем данные с сервера
+      }
+    }).catch(function() {
+      console.error('Ошибка при добавлении операции');
+    });
+  }
+
+  function validateOperation(amount, categoryId) {
+    if (isNaN(amount) || amount <= 0) {
+      alert('Введите корректную сумму');
+      return false;
+    }
+    if (!categoryId) {
+      alert('Выберите категорию');
+      return false;
+    }
+    return true;
+  }
+</script>
+</body>
+</html>
