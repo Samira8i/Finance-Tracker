@@ -38,7 +38,7 @@ public class Transactions{
 
     public Transactions(){}
 
-    public Transactions(float amount, TransactionType transactionType, LocalDate transactionsDate){
+    public Transactions(float amount, TransactionType transactionType){
         setAmount(amount);
         setTransactionType(transactionType);
         setTransactionsDate(LocalDate.now());
