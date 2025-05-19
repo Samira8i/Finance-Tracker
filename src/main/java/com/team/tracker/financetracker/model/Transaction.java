@@ -7,8 +7,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "transactions")
-public class Transactions{
+@Table(name = "transaction")
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,15 +33,15 @@ public class Transactions{
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    @Column(name = "transactions_date")
-    private LocalDate transactionsDate;
+    @Column(name = "transaction_date") //todo localDateTime
+    private LocalDate transactionDate;
 
-    public Transactions(){}
+    public Transaction(){}
 
-    public Transactions(float amount, TransactionType transactionType){
+    public Transaction(float amount, TransactionType transactionType){
         setAmount(amount);
         setTransactionType(transactionType);
-        setTransactionsDate(LocalDate.now());
+        setTransactionDate(LocalDate.now());
 
     }
 
@@ -55,7 +55,7 @@ public class Transactions{
 
     public UUID getId() {return id; }
 
-    public LocalDate getTransactionsDate() {return transactionsDate; }
+    public LocalDate getTransactionDate() {return transactionDate; }
 
     public void setId(UUID id) {this.id = id; }
 
@@ -65,7 +65,7 @@ public class Transactions{
     public void setTransactionType(TransactionType transactionType) {this.transactionType = transactionType;
     }
 
-    public void setTransactionsDate(LocalDate transactionsDate) {this.transactionsDate = transactionsDate;
+    public void setTransactionDate(LocalDate transactionDate) {this.transactionDate = transactionDate;
     }
 
     public void setCategory(Category category) {
