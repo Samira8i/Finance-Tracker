@@ -337,3 +337,15 @@ body {
     color: white;
     box-shadow: 0 4px 8px rgba(159, 136, 242, 0.3);
 }
+
+
+.loading-message, .error-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-family: 'Manrope', sans-serif;
+}
+
+.error-message {
+    color: #ff6b62;
+}
