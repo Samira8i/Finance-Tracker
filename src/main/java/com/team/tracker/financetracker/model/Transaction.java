@@ -3,7 +3,7 @@ package com.team.tracker.financetracker.model;
 
 import com.team.tracker.financetracker.enums.TransactionType;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -33,15 +33,15 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    @Column(name = "transaction_date") //todo localDateTime
-    private LocalDate transactionDate;
+    @Column(name = "transaction_time")
+    private LocalDateTime transactionTime;
 
     public Transaction(){}
 
     public Transaction(float amount, TransactionType transactionType){
         setAmount(amount);
         setTransactionType(transactionType);
-        setTransactionDate(LocalDate.now());
+        setTransactionTime(LocalDateTime.now());
 
     }
 
@@ -55,7 +55,7 @@ public class Transaction {
 
     public UUID getId() {return id; }
 
-    public LocalDate getTransactionDate() {return transactionDate; }
+    public LocalDateTime getTransactionDate() {return transactionTime; }
 
     public void setId(UUID id) {this.id = id; }
 
@@ -65,7 +65,7 @@ public class Transaction {
     public void setTransactionType(TransactionType transactionType) {this.transactionType = transactionType;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {this.transactionDate = transactionDate;
+    public void setTransactionTime(LocalDateTime transactionDate) {this.transactionTime = transactionDate;
     }
 
     public void setCategory(Category category) {
