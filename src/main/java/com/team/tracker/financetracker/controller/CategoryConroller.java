@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/categories")
 @CrossOrigin(origins = "http://localhost:63342")
 public class CategoryConroller {
 
@@ -20,7 +20,7 @@ public class CategoryConroller {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/categories") // Только конечная часть пути
+    @GetMapping
     public List<Category> getCategoriesByType(@RequestParam CategoryType categoryType) {
         return categoryService.getCategoriesByType(categoryType);
     }

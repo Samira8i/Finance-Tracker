@@ -5,23 +5,10 @@
     <title>Login</title>
 </head>
 <body>
-go back...
-<a href="/home">home</a>
+login...
 
-<h1>Login</h1>
-<form method="post" action="/login">
-    <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <span th:if="${error}" style="color:red" th:text="${error}"></span>
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Login</button>
-</form>
-<p>Нет аккаунта? <a href="/register">Регистрация.</a></p>
+<a href="/home">home</a>
+<a href="/register">register</a>
 
 </body>
 </html>
