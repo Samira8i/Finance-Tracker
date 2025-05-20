@@ -1,8 +1,5 @@
 package com.team.tracker.financetracker.enums;
 
-public enum CategoryType {
+public enum TransactionType {
     INCOME, EXPENSE
 }
-
-
-

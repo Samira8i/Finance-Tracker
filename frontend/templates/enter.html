@@ -10,11 +10,8 @@
             href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&display=swap"
             rel="stylesheet"
     />
-    <link
-            href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&display=swap"
-            rel="stylesheet"
-    />
     <link rel="stylesheet" href="../static/style.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="form-page">
 <div class="left-section">
@@ -25,12 +22,16 @@
 </div>
 
 <div class="right-section">
-    <div class="form-container">
-        <form>
+    <div class="form-container">   
+        <!-- Блок для сообщений об ошибке (изначально скрыт) -->
+        <div id="error-message" style="display: none; color: #d32f2f; margin-bottom: 15px;"></div>
+
+        <form id="loginForm">
             <div class="form-group">
                 <input
                         type="text"
                         id="login"
+                        name="username"
                         class="input-field"
                         placeholder="Логин"
                         required
@@ -41,15 +42,59 @@
                 <input
                         type="password"
                         id="password"
+                        name="password"
                         class="input-field"
                         placeholder="Пароль"
                         required
                 />
             </div>
-
-            <button type="submit" class="submit-btn">Отправить</button>
+          
+            <button type="submit" class="submit-btn">Войти</button>
         </form>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('#loginForm').submit(function(e) {
+            e.preventDefault();
+
+            // Показываем состояние загрузки
+            const $btn = $('.submit-btn');
+            $btn.prop('disabled', true).text('Вход...'); //во время отправки блокируем кнопку и меняем текст
+            $('#error-message').hide();
+
+            // Отправка данных на сервер в формате json
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/auth/login', //потом поменять
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: $('#login').val(),
+                    password: $('#password').val()
+                }),
+                success: function(response) {
+                    // если все успешно, перенаправляем на index.html
+                    window.location.href = '/index.html'; // Измените на нужный URL (сохранять в cookie jvt token)
+                },
+                error: function(xhr) {
+                    // Обработка ошибок
+                    $btn.prop('disabled', false).text('Войти');
+
+                    let errorText = 'Ошибка авторизации';
+                    if (xhr.status === 401) {
+                        errorText = 'Неверный логин или пароль';
+                    } else if (xhr.status === 0) {
+                        errorText = 'Сервер недоступен';
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorText = xhr.responseJSON.message;
+                    }
+
+                    $('#error-message').text(errorText).show();
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>
