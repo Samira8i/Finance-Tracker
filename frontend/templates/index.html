@@ -80,24 +80,14 @@
     <div class="category-section">
       <h2 class="category-title">ДОХОД</h2>
       <ul class="category-list" id="incomeCategories">
-        <li class="category-item">Вклад <span>45 000 ₽</span></li>
-        <li class="category-item">Бизнес <span>32 000 ₽</span></li>
-        <li class="category-item">Зарплата <span>120 000 ₽</span></li>
-        <li class="category-item">Аренда <span>25 000 ₽</span></li>
-        <li class="category-item">Криптовалюта <span>8 500 ₽</span></li>
-        <li class="category-item">Другое <span>5 200 ₽</span></li>
+
       </ul>
     </div>
 
     <div class="category-section">
       <h2 class="category-title">РАСХОД</h2>
       <ul class="category-list" id="expenseCategories">
-        <li class="category-item">Дом <span>35 000 ₽</span></li>
-        <li class="category-item">Продукты <span>18 000 ₽</span></li>
-        <li class="category-item">Хобби <span>12 000 ₽</span></li>
-        <li class="category-item">Кафе <span>8 500 ₽</span></li>
-        <li class="category-item">Здоровье <span>6 200 ₽</span></li>
-        <li class="category-item">Другое <span>4 300 ₽</span></li>
+
       </ul>
     </div>
   </div>
@@ -125,7 +115,7 @@
 
 <script>
   // Конфигурация
-  const MOCK_MODE = true; // Режим моковых данных (true-используются моковые данные)
+  const MOCK_MODE = false; // Режим моковых данных (true-используются моковые данные)
   const API_BASE_URL = 'http://localhost:8080/api/v1'; // позже поменять
 
   // Моковые данные
@@ -381,36 +371,42 @@
     if (MOCK_MODE) {
       updateUI(MOCK_DATA);
     } else {
-      $.when(
-              fetchBalance(),
-              fetchCategories()
-      ).done(function(balance, categories) {
+      Promise.all([
+        fetchBalance(),
+        fetchCategories('income'),
+        fetchCategories('expense')
+      ]).then(function([balance, incomeCategories, expenseCategories]) {
         updateUI({
           balance: balance,
-          categories: categories,
-          statistics: MOCK_DATA.statistics // Графики пока на моках
+          categories: {
+            income: incomeCategories,
+            expense: expenseCategories
+          },
+          statistics: MOCK_DATA.statistics // пока что оставим графики моковыми
         });
-      }).fail(function() {
+      }).catch(function() {
         console.error('Ошибка загрузки данных');
+        updateUI(MOCK_DATA);
       });
     }
   }
 
   // API функции
   function fetchBalance() {
-    if (MOCK_MODE) return MOCK_DATA.balance;
-    return $.get(`${API_BASE_URL}/balance`).then(response => response.data);
+    if (MOCK_MODE) return Promise.resolve(MOCK_DATA.balance);
+    return $.get(`${API_BASE_URL}/balance`).then(response => response);
   }
 
-  function fetchCategories() {
-    if (MOCK_MODE) return MOCK_DATA.categories;
-    return $.get(`${API_BASE_URL}/categories`).then(response => response.data);
+  function fetchCategories(type) {
+    const typeParam = type.toUpperCase();
+    if (MOCK_MODE) return Promise.resolve(MOCK_DATA.categories[type]);
+    return $.get(`${API_BASE_URL}/categories?categoryType=${typeParam}`).then(response => response);
   }
 
   function postOperation(operationData) {
     if (MOCK_MODE) {
       console.log('Моковая операция:', operationData);
-      return { status: 'success' };
+      return Promise.resolve({ status: 'success' });
     }
     return $.ajax({
       url: `${API_BASE_URL}/operations`,
@@ -439,10 +435,10 @@
     let incomeHtml = '';
     categories.income.forEach(cat => {
       incomeHtml += `
-            <li class="category-item">
-                ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
-            </li>
-        `;
+        <li class="category-item">
+          ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+        </li>
+      `;
     });
     $('#incomeCategories').html(incomeHtml);
 
@@ -450,10 +446,10 @@
     let expenseHtml = '';
     categories.expense.forEach(cat => {
       expenseHtml += `
-            <li class="category-item">
-                ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
-            </li>
-        `;
+        <li class="category-item">
+          ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+        </li>
+      `;
     });
     $('#expenseCategories').html(expenseHtml);
   }
@@ -493,28 +489,36 @@
   }
 
   function loadCategories(type) {
-    if (MOCK_MODE) {
-      showCategories(MOCK_DATA.categories[type]);
-    } else {
-      fetchCategories().then(function(categories) {
-        showCategories(categories[type]);
-      });
-    }
+    $('#modalCategories').html('<div class="loading-message">Загрузка категорий...</div>');
+
+    fetchCategories(type).then(function(categories) {
+      showCategories(categories);
+    }).catch(function(error) {
+      console.error('Ошибка загрузки категорий:', error);
+      $('#modalCategories').html('<div class="error-message">Не удалось загрузить категории</div>');
+      if (MOCK_MODE) {
+        showCategories(MOCK_DATA.categories[type]);
+      }
+    });
   }
 
   function showCategories(categories) {
+    if (!categories || categories.length === 0) {
+      $('#modalCategories').html('<div class="error-message">Категории не найдены</div>');
+      return;
+    }
+
     let html = '';
     categories.forEach(cat => {
       html += `
-            <div class="modal-category" data-id="${cat.id}">
-                <div class="category-circle" style="background-color: ${cat.color}"></div>
-                ${cat.name}
-            </div>
-        `;
+        <div class="modal-category" data-id="${cat.id}">
+          <div class="category-circle" style="background-color: ${cat.color || '#ccc'}"></div>
+          ${cat.name}
+        </div>
+      `;
     });
     $('#modalCategories').html(html);
 
-    // Выбор категории
     $('.modal-category').click(function() {
       $('.modal-category').removeClass('selected');
       $(this).addClass('selected');
