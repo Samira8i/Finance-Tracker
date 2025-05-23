@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>История операций | Трекер финансов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../static/style_history.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<!-- Боковое меню -->
+<div class="side-menu">
+    <div class="menu-item" title="Добавить операцию" id="addOperationBtn">
+        <img src="../media/plus.png" alt="" />
+    </div>
+    <a href="index.html"><div class="menu-item" title="Дом">
+        <img src="../media/home.png" alt="" />
+    </div></a>
+    <a> <div class="menu-item active" title="История">
+        <img src="../media/history.png" alt="" />
+    </div></a>
+    <a href="main.html"><div class="menu-item" title="Выход">
+        <img src="../media/exit.png" alt="" />
+    </div></a>
+</div>
+
+<div class="container">
+    <!-- Основной контент -->
+    <div class="content">
+        <div class="history-header">
+            <h1 class="history-title">История операций</h1>
+        </div>
+
+        <!-- История операций -->
+        <div class="operations-container" id="operationsContainer">
+            <!-- Операции будут загружаться динамически -->
+        </div>
+    </div>
+
+    <!-- Фильтрация в стиле модального окна -->
+    <div class="filters-sidebar">
+        <h2 class="filters-title">Фильтрация</h2>
+
+        <div class="filter-tabs">
+            <div class="filter-tab active" data-filter-tab="income">Доход</div>
+            <div class="filter-tab" data-filter-tab="expense">Расход</div>
+        </div>
+
+        <div class="filter-categories" id="filterCategories">
+            <!-- Категории будут загружены динамически -->
+        </div>
+
+        <div class="filter-buttons">
+            <button class="filter-btn apply">Применить</button>
+            <button class="filter-btn reset">Сбросить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления операций -->
+<div class="modal" id="operationModal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+
+        <div class="tabs">
+            <div class="tab" data-tab="income">Доход</div>
+            <div class="tab active" data-tab="expense">Расход</div>
+        </div>
+
+        <input type="number" class="amount-input" id="operationAmount" placeholder="Введите сумму">
+
+        <div class="modal-categories" id="modalCategories">
+            <!-- Категории будут подгружаться -->
+        </div>
+
+        <button class="submit-btn" id="submitOperation">Отправить</button>
+    </div>
+</div>
+
+<script>
+    // Конфигурация
+    const MOCK_MODE = true; // Режим моковых данных (true/false)
+    const API_BASE_URL = 'http://localhost:8080/api/v1'; // Базовый URL API
+
+    // Моковые данные для операций
+    const MOCK_OPERATIONS = [
+        {
+            id: 1,
+            type: "income",
+            category: "зарплата",
+            amount: 120000,
+            date: "2023-04-16T00:00:00"
+        },
+        {
+            id: 2,
+            type: "expense",
+            category: "продукты",
+            amount: 1870,
+            date: "2023-04-15T00:00:00"
+        },
+        {
+            id: 3,
+            type: "expense",
+            category: "хобби",
+            amount: 12300,
+            date: "2023-04-14T00:00:00"
+        },
+        {
+            id: 4,
+            type: "expense",
+            category: "другое",
+            amount: 180,
+            date: "2023-04-13T00:00:00"
+        },
+        {
+            id: 5,
+            type: "income",
+            category: "продукты",
+            amount: 12870,
+            date: "2023-04-13T00:00:00"
+        },
+        {
+            id: 6,
+            type: "income",
+            category: "криптовалюта",
+            amount: 1200,
+            date: "2023-04-12T00:00:00"
+        },
+        {
+            id: 7,
+            type: "income",
+            category: "криптовалюта",
+            amount: 1200,
+            date: "2023-04-12T00:00:00"
+        },
+        {
+            id: 8,
+            type: "income",
+            category: "криптовалюта",
+            amount: 1200,
+            date: "2023-04-12T00:00:00"
+        },
+        {
+            id: 9,
+            type: "income",
+            category: "криптовалюта",
+            amount: 1200,
+            date: "2023-04-12T00:00:00"
+        }
+    ];
+
+    // Моковые данные для категорий
+    const MOCK_CATEGORIES = {
+        income: [
+            {name: "зарплата", color: "#81E472"},
+            {name: "вклад", color: "#FFF8A5"},
+            {name: "бизнес", color: "#A7BDEE"},
+            {name: "криптовалюта", color: "#EEA7A8"},
+            {name: "аренда", color: "#D6A7EE"},
+            {name: "другое", color: "#4C5BCF"}
+        ],
+        expense: [
+            {name: "продукты", color: "#B3EEA7"},
+            {name: "здоровье", color: "#A7ECEE"},
+            {name: "дом", color: "#E2A7EE"},
+            {name: "хобби", color: "#EEA7A8"},
+            {name: "кафе", color: "#A7ECEE"},
+            {name: "другое", color: "#DDA7EE"},
+        ]
+    };
+
+    // Инициализация при загрузке страницы
+    $(document).ready(function() {
+        loadOperations();
+        loadCategories();
+        setupEventListeners();
+    });
+
+    // Отображение операций
+    function displayOperations(operations) {
+        const $container = $('#operationsContainer');
+        $container.empty();
+
+        // Группировка операций по дате
+        const grouped = groupByDate(operations);
+
+        // Создание HTML для каждой даты
+        for (const [date, ops] of Object.entries(grouped)) {
+            const dateElement = $(`<div class="operations-date">${formatDate(date)}</div>`);
+            const dayContainer = $('<div class="operations-day">').append(dateElement);
+
+            ops.forEach(op => {
+                const amountClass = op.type === 'income' ? 'income' : 'expense';
+                const amountSign = op.type === 'income' ? '+' : '-';
+
+                dayContainer.append(`
+                    <div class="operation-item" data-id="${op.id}">
+                        <span class="operation-category">
+                            ${op.category}
+                        </span>
+                        <span class="operation-amount ${amountClass}">
+                            ${amountSign}${op.amount.toLocaleString('ru-RU')} руб
+                        </span>
+                    </div>
+                `);
+            });
+
+            $container.append(dayContainer);
+        }
+    }
+
+    // Группировка операций по дате
+    function groupByDate(operations) {
+        return operations.reduce((acc, op) => {
+            const date = op.date.split('T')[0];
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(op);
+            return acc;
+        }, {});
+    }
+
+    // Форматирование даты
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { day: 'numeric', month: 'long' };
+        return date.toLocaleDateString('ru-RU', options);
+    }
+
+    // Загрузка категорий
+    function loadCategories() {
+        if (MOCK_MODE) {
+            updateFilterCategories('income', MOCK_CATEGORIES.income);
+            updateModalCategories('expense', MOCK_CATEGORIES.expense);
+        } else {
+            $.get(`${API_BASE_URL}/categories?type=income`)
+                .done(function(data) {
+                    updateFilterCategories('income', data);
+                })
+                .fail(function() {
+                    console.error('Ошибка загрузки категорий доходов');
+                    updateFilterCategories('income', MOCK_CATEGORIES.income);
+                });
+
+            $.get(`${API_BASE_URL}/categories?type=expense`)
+                .done(function(data) {
+                    updateModalCategories('expense', data);
+                })
+                .fail(function() {
+                    console.error('Ошибка загрузки категорий расходов');
+                    updateModalCategories('expense', MOCK_CATEGORIES.expense);
+                });
+        }
+    }
+
+    // Обновление категорий в фильтре
+    function updateFilterCategories(type, categories) {
+        const $container = $('#filterCategories');
+        $container.empty();
+
+        categories.forEach(cat => {
+            $container.append(`
+                <div class="filter-category" data-name="${cat.name}">
+                    <div class="filter-category-circle" style="background-color: ${cat.color || '#ccc'}"></div>
+                    ${cat.name}
+                </div>
+            `);
+        });
+
+        // Обработчик выбора категории
+        $('.filter-category').click(function() {
+            $(this).toggleClass('selected');
+        });
+    }
+
+    // Обновление категорий в модальном окне
+    function updateModalCategories(type, categories) {
+        const $container = $('#modalCategories');
+        $container.empty();
+
+        categories.forEach(cat => {
+            $container.append(`
+                <div class="modal-category" data-name="${cat.name}">
+                    <div class="category-circle" style="background-color: ${cat.color || '#ccc'}"></div>
+                    ${cat.name}
+                </div>
+            `);
+        });
+
+        // Обработчик выбора категории
+        $('.modal-category').click(function() {
+            $('.modal-category').removeClass('selected');
+            $(this).addClass('selected');
+        });
+    }
+
+    // Настройка обработчиков событий
+    function setupEventListeners() {
+        // Переключение вкладок фильтра
+        $('.filter-tab').click(function() {
+            $('.filter-tab').removeClass('active');
+            $(this).addClass('active');
+
+            const type = $(this).data('filter-tab');
+            const categories = type === 'income' ? MOCK_CATEGORIES.income : MOCK_CATEGORIES.expense;
+            updateFilterCategories(type, categories);
+        });
+
+        // Применение фильтра
+        $('.filter-btn.apply').click(function() {
+            const type = $('.filter-tab.active').data('filter-tab');
+            const selected = $('.filter-category.selected').map((i, el) => $(el).data('name')).get();
+
+            console.log(`Фильтр: ${type}, Категории: ${selected.join(', ') || 'Все'}`);
+            // Здесь можно добавить фильтрацию операций
+        });
+
+        // Сброс фильтра
+        $('.filter-btn.reset').click(function() {
+            $('.filter-category').removeClass('selected');
+        });
+
+        // Открытие модального окна
+        $('#addOperationBtn').click(function() {
+            $('#operationModal').show();
+        });
+
+        // Закрытие модального окна
+        $('.close, #operationModal').click(function(e) {
+            if (e.target === this || $(e.target).hasClass('close')) {
+                $('#operationModal').hide();
+            }
+        });
+
+        // Переключение вкладок в модальном окне
+        $('.tab').click(function() {
+            $('.tab').removeClass('active');
+            $(this).addClass('active');
+
+            const type = $(this).data('tab');
+            const categories = type === 'income' ? MOCK_CATEGORIES.income : MOCK_CATEGORIES.expense;
+            updateModalCategories(type, categories);
+        });
+
+        // Отправка операции
+        $('#submitOperation').click(function() {
+            const amount = parseFloat($('#operationAmount').val());
+            const type = $('.tab.active').data('tab');
+            const category = $('.modal-category.selected').data('name');
+
+            if (!validateOperation(amount, category)) return;
+
+            const operationData = {
+                amount: amount,
+                type: type,
+                category: category,
+                date: new Date().toISOString()
+            };
+
+            if (MOCK_MODE) {
+                console.log('Моковая операция:', operationData);
+                // Добавляем в моковые данные
+                MOCK_OPERATIONS.unshift({
+                    ...operationData,
+                    id: Date.now()
+                });
+                loadOperations();
+            } else {
+                $.ajax({
+                    url: `${API_BASE_URL}/operations`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(operationData)
+                })
+                    .done(function() {
+                        loadOperations(); // Перезагружаем операции
+                    })
+                    .fail(function() {
+                        console.error('Ошибка при добавлении операции');
+                    });
+            }
+
+            $('#operationModal').hide();
+            $('#operationAmount').val('');
+            $('.modal-category.selected').removeClass('selected');
+        });
+    }
+
+    // Валидация операции
+    function validateOperation(amount, category) {
+        if (isNaN(amount) || amount <= 0) {
+            alert('Введите корректную сумму');
+            return false;
+        }
+        if (!category) {
+            alert('Выберите категорию');
+            return false;
+        }
+        return true;
+    }
+    // Добавьте эту функцию для фильтрации операций
+    function filterOperations() {
+        const type = $('.filter-tab.active').data('filter-tab');
+        const selectedCategories = $('.filter-category.selected').map((i, el) => $(el).data('name')).get();
+
+        let operationsToDisplay = MOCK_MODE ? MOCK_OPERATIONS : []; // В реальном приложении нужно загрузить операции
+
+        // Фильтрация по типу (доход/расход)
+        operationsToDisplay = operationsToDisplay.filter(op => op.type === type);
+
+        // Фильтрация по выбранным категориям (если выбраны)
+        if (selectedCategories.length > 0) {
+            operationsToDisplay = operationsToDisplay.filter(op =>
+                selectedCategories.includes(op.category)
+            );
+        }
+
+        // Отображаем отфильтрованные операции
+        displayOperations(operationsToDisplay);
+    }
+
+    // Обновите обработчик кнопки "Применить"
+    $('.filter-btn.apply').click(function() {
+        filterOperations();
+    });
+
+    // Обновите обработчик кнопки "Сбросить"
+    $('.filter-btn.reset').click(function() {
+        $('.filter-category').removeClass('selected');
+        loadOperations(); // Показываем все операции без фильтрации
+    });
+
+    // Обновите обработчик переключения вкладок фильтра
+    $('.filter-tab').click(function() {
+        $('.filter-tab').removeClass('active');
+        $(this).addClass('active');
+
+        const type = $(this).data('filter-tab');
+        const categories = type === 'income' ? MOCK_CATEGORIES.income : MOCK_CATEGORIES.expense;
+        updateFilterCategories(type, categories);
+
+        // Автоматически применяем фильтр при переключении вкладок
+        filterOperations();
+    });
+
+    // Добавьте эту функцию для загрузки операций с сервера (если не в MOCK_MODE)
+    function loadOperationsFromServer() {
+        return $.get(`${API_BASE_URL}/operations`)
+            .then(response => response)
+            .catch(error => {
+                console.error('Ошибка загрузки операций:', error);
+                return [];
+            });
+    }
+
+    // Обновите функцию loadOperations
+    function loadOperations() {
+        if (MOCK_MODE) {
+            displayOperations(MOCK_OPERATIONS);
+        } else {
+            loadOperationsFromServer()
+                .then(operations => {
+                    displayOperations(operations);
+                });
+        }
+    }
+</script>
+</body>
+</html>
