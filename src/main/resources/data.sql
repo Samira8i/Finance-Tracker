@@ -10,5 +10,8 @@ INSERT INTO category (id, name, category_type, color) VALUES
 (gen_random_uuid(),'Продукты', 'EXPENSE', '#00F000'),
 (gen_random_uuid(),'Кафе', 'EXPENSE', '#000F00'),
 (gen_random_uuid(),'Здоровье', 'EXPENSE', '#0000F0'),
-(gen_random_uuid(),'Другие расходы', 'EXPENSE', '#00000F')
+('00000000-0000-0000-0000-000000000002','Другие расходы', 'EXPENSE', '#00000F')
 on conflict (name) do nothing;
+
+INSERT INTO users (id, username, password)
+VALUES ('00000000-0000-0000-0000-000000000001', 'common-user', 'defaultpass');

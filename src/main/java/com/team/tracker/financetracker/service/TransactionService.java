@@ -4,9 +4,7 @@ import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
 import com.team.tracker.financetracker.model.Category;
 import com.team.tracker.financetracker.model.Transaction;
 import com.team.tracker.financetracker.model.User;
-import com.team.tracker.financetracker.repository.CategoryRepository;
 import com.team.tracker.financetracker.repository.TransactionRepository;
-import com.team.tracker.financetracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,14 +16,18 @@ import java.util.UUID;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final CategoryService categoryService;
+    private final UserService userService;
+
+    // Дефолтные ID для заглушек
+    private static final UUID DEFAULT_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID DEFAULT_CATEGORY_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, CategoryRepository categoryRepository, UserRepository userRepository){
+    public TransactionService(TransactionRepository transactionRepository, CategoryService categoryService, UserService userService){
         this.transactionRepository = transactionRepository;
-        this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
+        this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     public List<Transaction> getUserTransaction(UUID userId){
@@ -35,15 +37,14 @@ public class TransactionService {
     @Transactional
     public Transaction save(CreateTransactionRequestDto request) {
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User с ID: " + request.getUserId() + " не найден")); //надо заменить...вроде
+        UUID userId = request.getUserId() != null ? request.getUserId() : DEFAULT_USER_ID; //моковые заглушки
+        User user = userService.findById(userId);
 
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Категория с ID: " + request.getCategoryId() + " не найдена"));
+        UUID categoryId = request.getCategoryId() != null ? request.getCategoryId() : DEFAULT_CATEGORY_ID; //моковые заглушки
+        Category category = categoryService.findById(categoryId);
 
         Transaction transaction = new Transaction(request.getAmount(), request.getTransactionType(), category, user);
 
         return transactionRepository.save(transaction);
-
     }
 }
