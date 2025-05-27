@@ -21,17 +21,10 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "date")
+    @Column(name = "creation_date")
     private LocalDate creationDate;
 
     public User(){
-
-    }
-    public User(String username, String password) {
-        setUsername(username);
-        setPassword(password);
-        setCreationDate(LocalDate.now());
-
     }
 
     public void setCreationDate(LocalDate creationDate) {

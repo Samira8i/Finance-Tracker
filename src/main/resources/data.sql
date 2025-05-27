@@ -10,7 +10,5 @@ INSERT INTO category (id, name, category_type, color) VALUES
 (gen_random_uuid(),'Продукты', 'EXPENSE', '#00F000'),
 (gen_random_uuid(),'Кафе', 'EXPENSE', '#000F00'),
 (gen_random_uuid(),'Здоровье', 'EXPENSE', '#0000F0'),
-(gen_random_uuid(),'Другие расходы', 'EXPENSE', '#00000F'),
-(gen_random_uuid(),'тест', 'EXPENSE', '#12300F'),
-(gen_random_uuid(),'тест2', 'INCOME', '#12400F')
+(gen_random_uuid(),'Другие расходы', 'EXPENSE', '#00000F')
 on conflict (name) do nothing;

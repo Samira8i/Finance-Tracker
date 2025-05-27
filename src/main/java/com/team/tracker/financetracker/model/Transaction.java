@@ -38,9 +38,11 @@ public class Transaction {
 
     public Transaction(){}
 
-    public Transaction(float amount, TransactionType transactionType){
+    public Transaction(double amount, TransactionType transactionType, Category category, User user){
         setAmount(amount);
         setTransactionType(transactionType);
+        this.category = category;
+        this.user = user;
         setTransactionTime(LocalDateTime.now());
 
     }
@@ -60,7 +62,7 @@ public class Transaction {
     public void setId(UUID id) {this.id = id; }
 
 
-    public void setAmount(float amount) { this.amount = amount; }
+    public void setAmount(double amount) { this.amount = amount; }
 
     public void setTransactionType(TransactionType transactionType) {this.transactionType = transactionType;
     }

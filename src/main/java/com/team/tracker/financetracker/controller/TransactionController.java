@@ -1,5 +1,6 @@
 package com.team.tracker.financetracker.controller;
 
+import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
 import com.team.tracker.financetracker.model.Transaction;
 
 import com.team.tracker.financetracker.service.TransactionService;
@@ -8,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/transaction") //todo уточнить путь у фронта
+@RequestMapping("/api/v1/transaction")
 @CrossOrigin(origins = "http://localhost:63342")
 public class TransactionController {
 
@@ -19,8 +20,8 @@ public class TransactionController {
         this.transactionService = transactionsService;
     }
 
-    @PostMapping("/") //todo уточнить путь у фронта
-    public ResponseEntity<Transaction> addTransaction(@RequestBody Transaction transaction){
-        return ResponseEntity.ok(transactionService.save(transaction));
+    @PostMapping
+    public ResponseEntity<Transaction> createTransaction(@RequestBody CreateTransactionRequestDto request){
+        return ResponseEntity.ok(transactionService.save(request));
     }
 }

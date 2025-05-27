@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.time.LocalDate;
+
 @Service
 @Transactional(readOnly = true)
 public class UserService {
@@ -29,6 +31,8 @@ public class UserService {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new BadRequestException("Имя пользователя уже занято");
         }
+
+        user.setCreationDate(LocalDate.now());
 
         String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
