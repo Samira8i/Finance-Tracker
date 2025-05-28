@@ -46,5 +46,17 @@ public class User {
     public String getUsername() {
         return username;
     }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public LocalDate getCreationDate() {
+        return creationDate;
+    }
 }
 

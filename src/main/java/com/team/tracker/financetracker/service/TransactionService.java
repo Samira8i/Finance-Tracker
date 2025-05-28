@@ -1,6 +1,7 @@
 package com.team.tracker.financetracker.service;
 
 import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
+import com.team.tracker.financetracker.dto.TransactionResponseDto;
 import com.team.tracker.financetracker.model.Category;
 import com.team.tracker.financetracker.model.Transaction;
 import com.team.tracker.financetracker.model.User;
@@ -35,7 +36,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction save(CreateTransactionRequestDto request) {
+    public TransactionResponseDto save(CreateTransactionRequestDto request) {
 
         UUID userId = request.getUserId() != null ? request.getUserId() : DEFAULT_USER_ID; //моковые заглушки
         User user = userService.findById(userId);
@@ -45,6 +46,8 @@ public class TransactionService {
 
         Transaction transaction = new Transaction(request.getAmount(), request.getTransactionType(), category, user);
 
-        return transactionRepository.save(transaction);
+        transactionRepository.save(transaction);
+
+        return TransactionResponseDto.responseFromTransaction(transaction);
     }
 }

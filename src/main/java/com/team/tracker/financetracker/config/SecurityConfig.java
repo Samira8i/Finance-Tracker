@@ -1,7 +1,6 @@
 package com.team.tracker.financetracker.config;
 
 import com.team.tracker.financetracker.security.JwtFIlter;
-import com.team.tracker.financetracker.security.JwtTokenUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,7 +35,7 @@ public class SecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/transaction", "/api/v1/categories").permitAll() //ДЛЯ ТЕСТА "/api/v1/categories", "/api/v1/transaction"
+                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/categories", "/api/v1/transaction").permitAll() //ДЛЯ ТЕСТА "/api/v1/categories", "/api/v1/transaction"
                         .anyRequest().authenticated()
                 )
                 //.anyRequest().authenticated())
