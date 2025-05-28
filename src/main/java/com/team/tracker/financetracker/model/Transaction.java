@@ -3,12 +3,12 @@ package com.team.tracker.financetracker.model;
 
 import com.team.tracker.financetracker.enums.TransactionType;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "transactions")
-public class Transactions{
+@Table(name = "transaction")
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,15 +33,17 @@ public class Transactions{
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    @Column(name = "transactions_date")
-    private LocalDate transactionsDate;
+    @Column(name = "transaction_time")
+    private LocalDateTime transactionTime;
 
-    public Transactions(){}
+    public Transaction(){}
 
-    public Transactions(float amount, TransactionType transactionType, LocalDate transactionsDate){
+    public Transaction(double amount, TransactionType transactionType, Category category, User user){
         setAmount(amount);
         setTransactionType(transactionType);
-        setTransactionsDate(LocalDate.now());
+        this.category = category;
+        this.user = user;
+        setTransactionTime(LocalDateTime.now());
 
     }
 
@@ -55,17 +57,17 @@ public class Transactions{
 
     public UUID getId() {return id; }
 
-    public LocalDate getTransactionsDate() {return transactionsDate; }
+    public LocalDateTime getTransactionDate() {return transactionTime; }
 
     public void setId(UUID id) {this.id = id; }
 
 
-    public void setAmount(float amount) { this.amount = amount; }
+    public void setAmount(double amount) { this.amount = amount; }
 
     public void setTransactionType(TransactionType transactionType) {this.transactionType = transactionType;
     }
 
-    public void setTransactionsDate(LocalDate transactionsDate) {this.transactionsDate = transactionsDate;
+    public void setTransactionTime(LocalDateTime transactionDate) {this.transactionTime = transactionDate;
     }
 
     public void setCategory(Category category) {

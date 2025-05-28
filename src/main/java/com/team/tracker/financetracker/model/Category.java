@@ -19,15 +19,15 @@ public class Category {
 
     @Column(name = "color", unique = true, nullable = false)
     //@Pattern(regexp = "^#[0-9A-Fa-f]{6}$") по идее не нужно т.к. сами данные задаем
-    private String colorHex;
+    private String color;
 
     @Column(name = "category_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private CategoryType categoryType;
 
-    public Category(String name, String colorHex, CategoryType categoryType) {
+    public Category(String name, String color, CategoryType categoryType) {
         this.name = name;
-        this.colorHex = colorHex;
+        this.color = color;
         this.categoryType = categoryType;
     }
 
@@ -37,8 +37,8 @@ public class Category {
         return categoryType;
     }
 
-    public String getColorHex() {
-        return colorHex;
+    public String getColor() {
+        return color;
     }
 
     public String getName() {
@@ -57,8 +57,8 @@ public class Category {
         this.name = name;
     }
 
-    public void setColorHex(String colorHex) {
-        this.colorHex = colorHex;
+    public void setColor(String colorHex) {
+        this.color = color;
     }
 
     public void setCategoryType(CategoryType categoryType) {
