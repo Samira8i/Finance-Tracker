@@ -22,7 +22,7 @@
 </div>
 
 <div class="right-section">
-    <div class="form-container">   
+    <div class="form-container">
         <!-- Блок для сообщений об ошибке (изначально скрыт) -->
         <div id="error-message" style="display: none; color: #d32f2f; margin-bottom: 15px;"></div>
 
@@ -48,7 +48,7 @@
                         required
                 />
             </div>
-          
+
             <button type="submit" class="submit-btn">Войти</button>
         </form>
     </div>
@@ -74,8 +74,17 @@
                     password: $('#password').val()
                 }),
                 success: function(response) {
-                    // если все успешно, перенаправляем на index.html
-                    window.location.href = 'index.html'; // Измените на нужный URL (сохранять в cookie jvt token)
+                    console.log("Успешный ответ от сервера:", response);
+
+                    if (response) {
+                        //document.cookie = 'USER_JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //удаление куки
+                        document.cookie = `USER_JWT=${response}; path=/; max-age=${60*60*24*7}; Secure; SameSite=Strict`;
+                        window.location.href = 'index.html';
+                    } else {
+                        console.error("Токен отсутствует в ответе:", response);
+                        $('#error-message').text('Ошибка: токен не получен').show();
+                        $btn.prop('disabled', false).text('Войти');
+                    }
                 },
                 error: function(xhr) {
                     // Обработка ошибок
