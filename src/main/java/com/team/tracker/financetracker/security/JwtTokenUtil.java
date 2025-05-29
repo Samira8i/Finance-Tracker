@@ -45,17 +45,14 @@ public class JwtTokenUtil {
             Jwts.parserBuilder()
                     .setSigningKey(secret)
                     .build()
-                    .parseClaimsJwt(token);
+                    .parseClaimsJws(token);
             return true;
         }
         catch (Exception e){
-            System.out.print("Непарвильный токен");
+            System.out.print("Неправильный токен");
         }
         return false;
     }
- //   public boolean isValidateToken(@NonNull String token){
-  //      return validateToken(token, getSigningKey());
-   // }
 
     public String extractUsername(@NonNull String token){
         return Jwts.parserBuilder()
