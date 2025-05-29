@@ -15,12 +15,12 @@ import java.io.IOException;
 
 
 @Component
-public class JwtFIlter extends OncePerRequestFilter {
+public class JwtFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final  JwtTokenUtil jwtTokenUtil;
 
-    public JwtFIlter(CustomUserDetailsService customUserDetailsService, JwtTokenUtil jwtTokenUtil){
+    public JwtFilter(CustomUserDetailsService customUserDetailsService, JwtTokenUtil jwtTokenUtil){
         this.customUserDetailsService = customUserDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
     }
@@ -28,7 +28,7 @@ public class JwtFIlter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String autorizationHeader = request.getHeader("Autorization");
+        String autorizationHeader = request.getHeader("Authorization");
 
         if (autorizationHeader == null || !autorizationHeader.startsWith("Bearer ")){
             filterChain.doFilter(request, response);

@@ -1,15 +1,13 @@
 package com.team.tracker.financetracker.config;
 
-import com.team.tracker.financetracker.security.JwtFIlter;
+import com.team.tracker.financetracker.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,10 +20,10 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private JwtFIlter jwtFIlter;
+    private JwtFilter jwtFilter;
 
-    public SecurityConfig(JwtFIlter jwtFIlter){
-        this.jwtFIlter = jwtFIlter;
+    public SecurityConfig(JwtFilter jwtFilter){
+        this.jwtFilter = jwtFilter;
     }
 
     @Bean
@@ -35,12 +33,12 @@ public class SecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/categories", "/api/v1/transaction").permitAll() //ДЛЯ ТЕСТА "/api/v1/categories", "/api/v1/transaction"
+                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/categories").permitAll() //ДЛЯ ТЕСТА "/api/v1/categories", "/api/v1/transaction"
                         .anyRequest().authenticated()
                 )
                 //.anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFIlter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
