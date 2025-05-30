@@ -23,9 +23,11 @@
   <a href="history.html"> <div class="menu-item" title="История">
     <img src="../media/history.png" alt="" />
   </div></a>
-  <a href="main.html"><div class="menu-item" title="Выход">
-    <img src="../media/exit.png" alt="" />
-  </div></a>
+  <a href="#" onclick="logout(); return false;">
+    <div class="menu-item" title="Выход">
+      <img src="../media/exit.png" alt="" />
+    </div>
+  </a>
 </div>
 
 <div class="container">
@@ -596,6 +598,14 @@
       return false;
     }
     return true;
+  }
+  // Функция для выхода из системы
+  function logout() {
+    // Удаляем куку с токеном
+    document.cookie = 'USER_JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
+
+    // Перенаправляем на страницу входа
+    window.location.href = 'main.html';
   }
 </script>
 </body>
