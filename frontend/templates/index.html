@@ -114,6 +114,18 @@
 </div>
 
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Получаем токен только из куки
+    const token = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('USER_JWT='))
+            ?.split('=')[1];
+
+    if (!token) {
+      window.location.href = 'enter.html'; // Перенаправляем на страницу входа
+      return; // Прерываем выполнение
+    }
+  });
   // Конфигурация
   const MOCK_MODE = false; // Режим моковых данных (true-используются моковые данные)
   const API_BASE_URL = 'http://localhost:8080/api/v1'; // позже поменять
