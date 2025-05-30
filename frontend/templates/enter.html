@@ -77,7 +77,6 @@
                     console.log("Успешный ответ от сервера:", response);
 
                     if (response) {
-                        //document.cookie = 'USER_JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //удаление куки
                         document.cookie = `USER_JWT=${response}; path=/; max-age=${60*60*24*7}; Secure; SameSite=Strict`;
                         window.location.href = 'index.html';
                     } else {
