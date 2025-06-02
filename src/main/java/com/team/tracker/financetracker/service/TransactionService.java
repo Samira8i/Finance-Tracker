@@ -1,7 +1,9 @@
 package com.team.tracker.financetracker.service;
 
+import com.team.tracker.financetracker.dto.BalanceResponseDto;
 import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
 import com.team.tracker.financetracker.dto.TransactionResponseDto;
+import com.team.tracker.financetracker.enums.TransactionType;
 import com.team.tracker.financetracker.model.Category;
 import com.team.tracker.financetracker.model.Transaction;
 import com.team.tracker.financetracker.model.User;
@@ -33,6 +35,11 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
         this.categoryService = categoryService;
         this.userService = userService;
+    }
+    public double calculateUserTransaction(UserDetails userDetails){
+        UUID userId = userService.findByUsername(userDetails.getUsername()).getId();
+        return transactionRepository.sumIncomeExpense(userId);
+
     }
 
     public List<TransactionResponseDto> getUserTransaction(UserDetails userDetails){
