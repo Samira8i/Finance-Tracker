@@ -8,8 +8,6 @@ import com.team.tracker.financetracker.model.Category;
 import com.team.tracker.financetracker.model.Transaction;
 import com.team.tracker.financetracker.model.User;
 import com.team.tracker.financetracker.repository.TransactionRepository;
-import com.team.tracker.financetracker.security.CustomUserDetailsService;
-import org.hibernate.mapping.UserDefinedArrayType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;

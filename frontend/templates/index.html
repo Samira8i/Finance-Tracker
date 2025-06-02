@@ -417,15 +417,35 @@
     return $.get(`${API_BASE_URL}/categories?categoryType=${typeParam}`).then(response => response);
   }
 
+  function getToken() {
+    const token = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('USER_JWT='))
+            ?.split('=')[1];
+    return token;
+  }
+
   function postOperation(operationData) {
     if (MOCK_MODE) {
       console.log('Моковая операция:', operationData);
       return Promise.resolve({ status: 'success' });
     }
+    const token = getToken();
+    if (!token) {
+      console.error("Токен не найден");
+      window.location.href = 'enter.html';
+      return Promise.reject('Token not found');
+    }
+
+    console.log("Отправка запроса с токеном:", token);
+
     return $.ajax({
-      url: `${API_BASE_URL}/operations`,
+      url: `${API_BASE_URL}/transaction`,
       type: 'POST',
       contentType: 'application/json',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       data: JSON.stringify(operationData)
     });
   }
@@ -573,9 +593,8 @@
 
     const operationData = {
       amount: amount,
-      type: type,
-      categoryId: categoryId,
-      date: new Date().toISOString()
+      transactionType: type.toUpperCase(),
+      categoryId: categoryId
     };
 
     postOperation(operationData).then(function() {
