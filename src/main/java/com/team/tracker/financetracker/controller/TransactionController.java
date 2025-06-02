@@ -31,7 +31,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.save(request,principal));
     }
 
-    @PostMapping("/history")
+    @GetMapping("/history")
     public ResponseEntity<List<TransactionResponseDto>> getUserTransaction(@AuthenticationPrincipal UserDetails userDetails){
         List<TransactionResponseDto> transactions = transactionService.getUserTransaction(userDetails);
         return ResponseEntity.ok(transactions);
