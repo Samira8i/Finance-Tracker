@@ -1,5 +1,6 @@
 package com.team.tracker.financetracker.controller;
 
+import com.team.tracker.financetracker.dto.BalanceResponseDto;
 import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
 import com.team.tracker.financetracker.dto.TransactionResponseDto;
 
@@ -35,5 +36,12 @@ public class TransactionController {
     public ResponseEntity<List<TransactionResponseDto>> getUserTransaction(@AuthenticationPrincipal UserDetails userDetails){
         List<TransactionResponseDto> transactions = transactionService.getUserTransaction(userDetails);
         return ResponseEntity.ok(transactions);
+    }
+
+
+    @GetMapping("/index")
+   public ResponseEntity<BalanceResponseDto> getUserBalance(@AuthenticationPrincipal UserDetails userDetails){
+        double balance = transactionService.calculateUserTransaction(userDetails);
+        return ResponseEntity.ok(new BalanceResponseDto(balance));
     }
 }
