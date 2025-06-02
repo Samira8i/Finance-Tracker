@@ -14,11 +14,13 @@ public class TransactionResponseDto {
     private Double amount;
     private TransactionType transactionType;
     private LocalDateTime transactionDate;
+    private String categoryName;
 
     public static TransactionResponseDto responseFromTransaction(Transaction transaction) {
         TransactionResponseDto dto = new TransactionResponseDto();
         dto.setUserId(transaction.getUser().getId());
         dto.setCategoryId(transaction.getCategory().getId());
+        dto.setCategoryName(transaction.getCategory().getName());
         dto.setAmount(transaction.getAmount());
         dto.setTransactionType(transaction.getTransactionType());
         dto.setTransactionDate(transaction.getTransactionDate());
@@ -63,5 +65,12 @@ public class TransactionResponseDto {
 
     public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+    public String getCategoryName() {
+        return categoryName;
     }
 }
