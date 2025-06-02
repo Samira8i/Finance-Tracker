@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,8 +35,14 @@ public class TransactionService {
         this.userService = userService;
     }
 
-    public List<Transaction> getUserTransaction(UUID userId){
-        return transactionRepository.findByUserId(userId);
+    public List<TransactionResponseDto> getUserTransaction(UserDetails userDetails){
+        UUID userId = userService.findByUsername(userDetails.getUsername()).getId();
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByTransactionTimeDesc(userId);
+        List<TransactionResponseDto> result = new ArrayList<>(transactions.size());
+        for (Transaction transaction : transactions) {
+            result.add(TransactionResponseDto.responseFromTransaction(transaction));
+        }
+        return result;
     }
 
     @Transactional
@@ -51,7 +58,6 @@ public class TransactionService {
         Transaction transaction = new Transaction(request.getAmount(), request.getTransactionType(), category, user);
 
         transactionRepository.save(transaction);
-
         return TransactionResponseDto.responseFromTransaction(transaction);
     }
 }
