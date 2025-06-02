@@ -11,5 +11,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByUserId(UUID userId);
     List<Transaction> findByCategoryId(UUID categoryId);
     List<Transaction> findByTransactionType(TransactionType transactionType);
+    List<Transaction> findByUserIdOrderByTransactionTimeDesc(UUID userId);
 
 }
