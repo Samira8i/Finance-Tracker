@@ -25,7 +25,6 @@ public class TransactionService {
     private final UserService userService;
 
     // Дефолтные ID для заглушек
-    private static final UUID DEFAULT_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private static final UUID DEFAULT_CATEGORY_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @Autowired
@@ -53,8 +52,6 @@ public class TransactionService {
     @Transactional
     public TransactionResponseDto save(CreateTransactionRequestDto request, UserDetails userDetails) {
 
-        //UUID userId = request.getUserId() != null ? request.getUserId() : DEFAULT_USER_ID; //моковые заглушки
-        //user = userService.findById(userId); по факту уже ненадо Дима сам ес чо удалит.
         User user = userService.findByUsername(userDetails.getUsername());
 
         UUID categoryId = request.getCategoryId() != null ? request.getCategoryId() : DEFAULT_CATEGORY_ID; //моковые заглушки

@@ -13,6 +13,7 @@ INSERT INTO category (id, name, category_type, color) VALUES
 ('00000000-0000-0000-0000-000000000002','Другое ', 'EXPENSE', '#EEEDA7')
 on conflict (name) do nothing;
 
+
 INSERT INTO users (id, username, password) VALUES
-('00000000-0000-0000-0000-000000000001', 'common-user', 'defaultpass')
+('00000000-0000-0000-0000-000000000001', 'common-user', '$2a$10$2aHF8VcqA.sssuAlZBJvx.GWVpZt7WbzB8q6A/uOTTLQW0ug3Z6yS') --defaultpass
 on conflict (id) do nothing;
