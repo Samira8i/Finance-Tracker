@@ -35,11 +35,7 @@
     <h1 class="balance-title">Баланс</h1>
   </div>
 
-  <div class="balance-amount" id="balanceAmount">786 345,96 ₽</div>
-
-  <div class="balance-change" id="balanceChange">
-    <span>+10 000 ₽ за месяц</span>
-  </div>
+  <div class="balance-amount balance-positive" id="balanceAmount">786 345,96 ₽</div>
 
   <!-- Комбинированный график сверху -->
   <div class="main-chart-container">
@@ -128,6 +124,13 @@
       return; // Прерываем выполнение
     }
   });
+  $(document).ready(function() {
+    initCharts();
+    loadBalance();
+    loadCategoriesMain('income');
+    loadCategoriesMain('expense');
+    setupEventListeners();
+  });
   // Конфигурация
   const MOCK_MODE = false; // Режим моковых данных (true-используются моковые данные)
   const API_BASE_URL = 'http://localhost:8080/api/v1'; // позже поменять
@@ -145,7 +148,7 @@
         { id: 3, name: "Зарплата", amount: 120000, color: "#81E472" },
         { id: 4, name: "Аренда", amount: 25000, color: "#D6A7EE" },
         { id: 5, name: "Криптовалюта", amount: 8500, color: "#EEA7A8" },
-        { id: 6, name: "Другое", amount: 5200, color: "#4C5BCF" }
+        { id: 6, name: "Другие", amount: 5200, color: "#4C5BCF" }
       ],
       expense: [
         { id: 101, name: "Дом", amount: 35000, color: "#E2A7EE" },
@@ -153,7 +156,7 @@
         { id: 103, name: "Хобби", amount: 12000, color: "#EEA7A8" },
         { id: 104, name: "Кафе", amount: 8500, color: "#EEC6A7" },
         { id: 105, name: "Здоровье", amount: 6200, color: "#A7ECEE" },
-        { id: 106, name: "Другое", amount: 4300, color: "#EEEDA7" }
+        { id: 106, name: "Другие", amount: 4300, color: "#EEEDA7" }
       ]
     },
     statistics: {
@@ -216,11 +219,6 @@
   };
 
   // Инициализация при загрузке
-  $(document).ready(function() {
-    initCharts();
-    loadData();
-    setupEventListeners();
-  });
 
   // Инициализация графиков
   function initCharts() {
@@ -381,34 +379,82 @@
   }
 
   // Загрузка данных
-  function loadData() {
-    if (MOCK_MODE) {
-      updateUI(MOCK_DATA);
-    } else {
-      Promise.all([
-        fetchBalance(),
-        fetchCategories('income'),
-        fetchCategories('expense')
-      ]).then(function([balance, incomeCategories, expenseCategories]) {
-        updateUI({
-          balance: balance,
-          categories: {
-            income: incomeCategories,
-            expense: expenseCategories
-          },
-          statistics: MOCK_DATA.statistics // пока что оставим графики моковыми
-        });
-      }).catch(function() {
-        console.error('Ошибка загрузки данных');
-        updateUI(MOCK_DATA);
-      });
-    }
+  function loadBalance() {
+    $('#balanceAmount').text('Загрузка...');
+    fetchBalance()
+            .then(balance => {
+              updateBalance(balance);
+            })
+            .catch(error => {
+              console.error('Ошибка загрузки баланса:', error);
+              $('#balanceAmount').text('Ошибка загрузки');
+              if (MOCK_MODE) updateBalance(MOCK_DATA.balance);
+            });
   }
+  function loadCategoriesMain(type) {
+    fetchCategories(type)
+            .then(categories => {
+              if (type === 'income') {
+                updateIncomeCategories(categories);
+              } else if (type === 'expense') {
+                updateExpenseCategories(categories);
+              }
+            })
+            .catch(error => {
+              console.error(`Ошибка загрузки категорий (${type}):`, error);
+              if (type === 'income') updateIncomeCategories(MOCK_DATA.categories.income);
+              else if (type === 'expense') updateExpenseCategories(MOCK_DATA.categories.expense);
+            });
+
+  }
+  function updateIncomeCategories(categories) {
+    let incomeHtml = '';
+    categories.forEach(cat => {
+      incomeHtml += `
+      <li class="category-item">
+        ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+      </li>`;
+    });
+    $('#incomeCategories').html(incomeHtml);
+  }
+
+  // Обновление UI для расходов
+  function updateExpenseCategories(categories) {
+    let expenseHtml = '';
+    categories.forEach(cat => {
+      expenseHtml += `
+      <li class="category-item">
+        ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
+      </li>`;
+    });
+    $('#expenseCategories').html(expenseHtml);
+  }
+
+
 
   // API функции
   function fetchBalance() {
-    if (MOCK_MODE) return Promise.resolve(MOCK_DATA.balance);
-    return $.get(`${API_BASE_URL}/balance`).then(response => response);
+    const token = getToken();
+    if (!token) {
+      console.error("Токен не найден");
+      window.location.href = 'enter.html';
+      return Promise.reject('Token not found');
+    }
+
+    return $.ajax({
+      url: `${API_BASE_URL}/transaction/index`,
+      type: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).then(response => {
+      console.log("Получен баланс:", response);
+      // Возвращаем объект с полем amount, используя значение balance из ответа
+      return { amount: response.balance };
+    }).catch(error => {
+      console.error('Ошибка при получении баланса:', error);
+      throw error; // Пробрасываем ошибку дальше
+    });
   }
 
   function fetchCategories(type) {
@@ -450,43 +496,37 @@
     });
   }
 
-  // Обновление UI
-  function updateUI(data) {
-    updateBalance(data.balance);
-    updateCategories(data.categories);
-  }
-
   function updateBalance(balance) {
-    $('#balanceAmount').text(`${balance.amount.toLocaleString('ru-RU')} ₽`);
-    const changeText = balance.change >= 0 ?
-            `+${balance.change.toLocaleString('ru-RU')} ₽` :
-            `${balance.change.toLocaleString('ru-RU')} ₽`;
-    $('#balanceChange span').text(`${changeText} за месяц`);
+    if (!balance || balance.amount === undefined) {
+      console.error('Некорректные данные баланса:', balance);
+      $('#balanceAmount').text('Ошибка данных').removeClass('balance-positive balance-negative');
+      return;
+    }
+
+    try {
+      const formattedAmount = new Intl.NumberFormat('ru-RU', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(balance.amount);
+
+      const $balanceElement = $('#balanceAmount');
+      $balanceElement.text(`${formattedAmount} ₽`);
+
+      // Удаляем все цветовые классы и добавляем нужный
+      $balanceElement
+              .removeClass('balance-positive balance-negative')
+              .addClass(balance.amount >= 0 ? 'balance-positive' : 'balance-negative');
+
+    } catch (e) {
+      console.error('Ошибка форматирования баланса:', e);
+      $('#balanceAmount')
+              .text(`${balance.amount} ₽`)
+              .removeClass('balance-positive balance-negative')
+              .addClass(balance.amount >= 0 ? 'balance-positive' : 'balance-negative');
+    }
   }
 
-  function updateCategories(categories) {
-    // Доходы
-    let incomeHtml = '';
-    categories.income.forEach(cat => {
-      incomeHtml += `
-        <li class="category-item">
-          ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
-        </li>
-      `;
-    });
-    $('#incomeCategories').html(incomeHtml);
-
-    // Расходы
-    let expenseHtml = '';
-    categories.expense.forEach(cat => {
-      expenseHtml += `
-        <li class="category-item">
-          ${cat.name} <span>${cat.amount.toLocaleString('ru-RU')} ₽</span>
-        </li>
-      `;
-    });
-    $('#expenseCategories').html(expenseHtml);
-  }
 
   // Обработчики событий
   function setupEventListeners() {
@@ -626,6 +666,7 @@
     // Перенаправляем на страницу входа
     window.location.href = 'main.html';
   }
+
 </script>
 </body>
 </html>
