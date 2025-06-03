@@ -349,3 +349,11 @@ body {
 .error-message {
     color: #ff6b62;
 }
+
+.balance-positive {
+    color: #2ecc71; /* Зеленый цвет для положительного баланса */
+}
+
+.balance-negative {
+    color: #ff6b62; /* Красный цвет для отрицательного баланса */
+}
