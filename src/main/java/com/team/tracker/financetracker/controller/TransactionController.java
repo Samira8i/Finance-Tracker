@@ -2,10 +2,9 @@ package com.team.tracker.financetracker.controller;
 
 import com.team.tracker.financetracker.dto.BalanceResponseDto;
 import com.team.tracker.financetracker.dto.CreateTransactionRequestDto;
+import com.team.tracker.financetracker.dto.MonthlyStatsDto;
 import com.team.tracker.financetracker.dto.TransactionResponseDto;
 
-import com.team.tracker.financetracker.model.User;
-import com.team.tracker.financetracker.security.CustomUserDetailsService;
 import com.team.tracker.financetracker.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,10 +37,14 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
-
     @GetMapping("/index")
    public ResponseEntity<BalanceResponseDto> getUserBalance(@AuthenticationPrincipal UserDetails userDetails){
         double balance = transactionService.calculateUserTransaction(userDetails);
         return ResponseEntity.ok(new BalanceResponseDto(balance));
+    }
+
+    @GetMapping("/last-year-stats")
+    public ResponseEntity<MonthlyStatsDto> getLastYearStats(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(transactionService.getLast12MonthsStats(userDetails));
     }
 }
