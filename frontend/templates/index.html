@@ -112,28 +112,31 @@
 </div>
 
 <script>
+  // Проверка авторизации при загрузке страницы
   document.addEventListener('DOMContentLoaded', function() {
-    // Получаем токен только из куки
     const token = document.cookie
             .split('; ')
             .find(row => row.startsWith('USER_JWT='))
             ?.split('=')[1];
 
     if (!token) {
-      window.location.href = 'enter.html'; // Перенаправляем на страницу входа
-      return; // Прерываем выполнение
+      window.location.href = 'enter.html';
+      return;
     }
   });
+  // Инициализация приложения после загрузки DOM
   $(document).ready(function() {
-    initCharts();
+    initCombinedChart();
+    initPieCharts();
     loadBalance();
     loadCategoriesMain('income');
     loadCategoriesMain('expense');
-    setupEventListeners();
+    setupEventListeners(); // Настройка обработчиков событий
   });
+
   // Конфигурация
-  const MOCK_MODE = false; // Режим моковых данных (true-используются моковые данные)
-  const API_BASE_URL = 'http://localhost:8080/api/v1'; // позже поменять
+  const MOCK_MODE = false;
+  const API_BASE_URL = 'http://localhost:8080/api/v1';
 
   // Моковые данные
   const MOCK_DATA = {
@@ -161,11 +164,6 @@
     },
     statistics: {
       week: {
-        combined: {
-          labels: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
-          income: [15000, 18000, 12000, 20000, 25000, 5000, 8000],
-          expense: [8000, 9500, 6000, 12000, 15000, 12000, 5000]
-        },
         income: {
           labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
           data: [45000, 32000, 120000, 25000, 8500, 5200],
@@ -178,11 +176,6 @@
         }
       },
       month: {
-        combined: {
-          labels: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"],
-          income: [85000, 92000, 105000, 88000, 115000, 125000, 95000, 110000, 105000, 120000, 115000, 130000],
-          expense: [45000, 50000, 55000, 48000, 52000, 60000, 65000, 58000, 62000, 70000, 68000, 75000]
-        },
         income: {
           labels: ["Вклад", "Бизнес", "Зарплата", "Аренда", "Криптовалюта", "Другое"],
           data: [180000, 128000, 480000, 100000, 34000, 20800],
@@ -208,7 +201,7 @@
       }
     }
   };
-
+  // Состояние приложения
   const AppState = {
     currentPeriod: 'week',
     charts: {
@@ -217,17 +210,54 @@
       expense: null
     }
   };
+  // Функция для преобразования номеров месяцев в названия
+  function getMonthNames(monthNumbers) {
+    const monthNames = {
+      '01': 'Янв', '02': 'Фев', '03': 'Мар', '04': 'Апр',
+      '05': 'Май', '06': 'Июн', '07': 'Июл', '08': 'Авг',
+      '09': 'Сен', '10': 'Окт', '11': 'Ноя', '12': 'Дек'
+    };
 
-  // Инициализация при загрузке
-
-  // Инициализация графиков
-  function initCharts() {
+    return monthNumbers.map(num => monthNames[num] || num);
+  }
+  // Инициализация комбинированного графика (доходы/расходы по месяцам)
+  function initCombinedChart() {
+    if (MOCK_MODE) {
+      createCombinedChart(
+              ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"],
+              [85000, 92000, 105000, 88000, 115000, 125000, 95000, 110000, 105000, 120000, 115000, 130000],
+              [45000, 50000, 55000, 48000, 52000, 60000, 65000, 58000, 62000, 70000, 68000, 75000]
+      );
+    } else {
+      // Загружаем данные с бэкенда
+      fetchMonthlyStats()
+              .then(data => {
+                // Преобразуем номера месяцев в названия
+                const monthNames = getMonthNames(data.months);
+                createCombinedChart(
+                        monthNames,
+                        data.incomes,
+                        data.expenses || Array(data.incomes.length).fill(0)
+                );
+              })
+              .catch(error => {
+                console.error('Ошибка загрузки статистики:', error);
+                createCombinedChart(
+                        ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"],
+                        [85000, 92000, 105000, 88000, 115000, 125000, 95000, 110000, 105000, 120000, 115000, 130000],
+                        [45000, 50000, 55000, 48000, 52000, 60000, 65000, 58000, 62000, 70000, 68000, 75000]
+                );
+              });
+    }
+  }
+  // Создание комбинированного графика
+  function createCombinedChart(labels, incomeData, expenseData) {
     AppState.charts.combined = new Chart(
             document.getElementById('combinedChart').getContext('2d'),
             {
               type: 'bar',
               data: {
-                labels: MOCK_DATA.statistics.month.combined.labels,
+                labels: labels,
                 datasets: [
                   {
                     label: 'Доходы',
@@ -235,7 +265,7 @@
                     borderColor: '#85bf97',
                     borderWidth: 1,
                     borderRadius: 5,
-                    data: MOCK_DATA.statistics.month.combined.income
+                    data: incomeData
                   },
                   {
                     label: 'Расходы',
@@ -243,7 +273,7 @@
                     borderColor: '#c85a50',
                     borderWidth: 1,
                     borderRadius: 5,
-                    data: MOCK_DATA.statistics.month.combined.expense
+                    data: expenseData
                   }
                 ]
               },
@@ -306,7 +336,12 @@
               }
             }
     );
+  }
 
+
+  // Инициализация круговых диаграмм (всегда на моковых данных)
+  function initPieCharts() {
+    // Доходы
     AppState.charts.income = new Chart(
             document.getElementById('incomeChart').getContext('2d'),
             {
@@ -342,6 +377,7 @@
             }
     );
 
+    // Расходы
     AppState.charts.expense = new Chart(
             document.getElementById('expenseChart').getContext('2d'),
             {
@@ -378,7 +414,7 @@
     );
   }
 
-  // Загрузка данных
+  // Загрузка баланса пользователя
   function loadBalance() {
     $('#balanceAmount').text('Загрузка...');
     fetchBalance()
@@ -391,6 +427,7 @@
               if (MOCK_MODE) updateBalance(MOCK_DATA.balance);
             });
   }
+  // Загрузка категорий (доходов или расходов)
   function loadCategoriesMain(type) {
     fetchCategories(type)
             .then(categories => {
@@ -405,8 +442,8 @@
               if (type === 'income') updateIncomeCategories(MOCK_DATA.categories.income);
               else if (type === 'expense') updateExpenseCategories(MOCK_DATA.categories.expense);
             });
-
   }
+  // Обновление списка категорий доходов
   function updateIncomeCategories(categories) {
     let incomeHtml = '';
     categories.forEach(cat => {
@@ -417,8 +454,7 @@
     });
     $('#incomeCategories').html(incomeHtml);
   }
-
-  // Обновление UI для расходов
+  // Обновление списка категорий расходов
   function updateExpenseCategories(categories) {
     let expenseHtml = '';
     categories.forEach(cat => {
@@ -429,8 +465,6 @@
     });
     $('#expenseCategories').html(expenseHtml);
   }
-
-
 
   // API функции
   function fetchBalance() {
@@ -449,11 +483,27 @@
       }
     }).then(response => {
       console.log("Получен баланс:", response);
-      // Возвращаем объект с полем amount, используя значение balance из ответа
       return { amount: response.balance };
     }).catch(error => {
       console.error('Ошибка при получении баланса:', error);
-      throw error; // Пробрасываем ошибку дальше
+      throw error;
+    });
+  }
+
+  function fetchMonthlyStats() {
+    const token = getToken();
+    if (!token) {
+      console.error("Токен не найден");
+      window.location.href = 'enter.html';
+      return Promise.reject('Token not found');
+    }
+
+    return $.ajax({
+      url: `${API_BASE_URL}/transaction/last-year-stats`,
+      type: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
   }
 
@@ -470,7 +520,7 @@
             ?.split('=')[1];
     return token;
   }
-
+  // API: Отправка новой операции
   function postOperation(operationData) {
     if (MOCK_MODE) {
       console.log('Моковая операция:', operationData);
@@ -495,7 +545,7 @@
       data: JSON.stringify(operationData)
     });
   }
-
+  // Обновление отображения баланса
   function updateBalance(balance) {
     if (!balance || balance.amount === undefined) {
       console.error('Некорректные данные баланса:', balance);
@@ -513,7 +563,6 @@
       const $balanceElement = $('#balanceAmount');
       $balanceElement.text(`${formattedAmount} ₽`);
 
-      // Удаляем все цветовые классы и добавляем нужный
       $balanceElement
               .removeClass('balance-positive balance-negative')
               .addClass(balance.amount >= 0 ? 'balance-positive' : 'balance-negative');
@@ -527,41 +576,35 @@
     }
   }
 
-
   // Обработчики событий
   function setupEventListeners() {
-    // Открытие модального окна
     $('#addOperationBtn').click(function() {
       $('#operationModal').show();
       loadCategories($('.tab.active').data('tab'));
     });
-
-    // Закрытие модального окна
+// Закрытие модального окна
     $('.close, #operationModal').click(function(e) {
       if (e.target === this || $(e.target).hasClass('close')) {
         $('#operationModal').hide();
       }
     });
-
-    // Переключение вкладок
+    // Переключение вкладок (доход/расход)
     $('.tab').click(function() {
       $('.tab').removeClass('active');
       $(this).addClass('active');
       loadCategories($(this).data('tab'));
     });
-
-    // Отправка операции
+// Отправка формы операции
     $('#submitOperation').click(handleOperationSubmit);
-
-    // Переключение периодов
+// Переключение периода для круговых диаграмм
     $('.pie-period-btn').click(function() {
       const period = $(this).data('period');
       $('.pie-period-btn').removeClass('active');
       $(this).addClass('active');
-      updateCharts(period);
+      updatePieCharts(period);
     });
   }
-
+  // Загрузка категорий для модального окна
   function loadCategories(type) {
     $('#modalCategories').html('<div class="loading-message">Загрузка категорий...</div>');
 
@@ -575,7 +618,7 @@
       }
     });
   }
-
+  // Отображение категорий в модальном окне
   function showCategories(categories) {
     if (!categories || categories.length === 0) {
       $('#modalCategories').html('<div class="error-message">Категории не найдены</div>');
@@ -598,18 +641,9 @@
       $(this).addClass('selected');
     });
   }
-
-  function updateCharts(period) {
-    // Обновляем данные графиков для выбранного периода
+  // Обновление круговых диаграмм при смене периода
+  function updatePieCharts(period) {
     const stats = MOCK_DATA.statistics[period];
-
-    // Комбинированный график
-    if (period === 'month') {
-      AppState.charts.combined.data.labels = stats.combined.labels;
-      AppState.charts.combined.data.datasets[0].data = stats.combined.income;
-      AppState.charts.combined.data.datasets[1].data = stats.combined.expense;
-      AppState.charts.combined.update();
-    }
 
     // Доходы
     AppState.charts.income.data.labels = stats.income.labels;
@@ -623,7 +657,7 @@
     AppState.charts.expense.data.datasets[0].backgroundColor = stats.expense.colors;
     AppState.charts.expense.update();
   }
-
+  // Обработка отправки формы операции
   function handleOperationSubmit() {
     const amount = parseFloat($('#operationAmount').val());
     const type = $('.tab.active').data('tab');
@@ -640,13 +674,14 @@
     postOperation(operationData).then(function() {
       $('#operationModal').hide();
       if (!MOCK_MODE) {
-        loadData(); // Обновляем данные с сервера
+        loadBalance();
+        createCombinedChart();
       }
     }).catch(function() {
       console.error('Ошибка при добавлении операции');
     });
   }
-
+  // Валидация формы операции
   function validateOperation(amount, categoryId) {
     if (isNaN(amount) || amount <= 0) {
       alert('Введите корректную сумму');
@@ -658,15 +693,11 @@
     }
     return true;
   }
-  // Функция для выхода из системы
+  // Выход из системы
   function logout() {
-    // Удаляем куку с токеном
     document.cookie = 'USER_JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
-
-    // Перенаправляем на страницу входа
     window.location.href = 'main.html';
   }
-
 </script>
 </body>
 </html>
