@@ -13,7 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.security.Key;
 import java.io.IOException;
 
-
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 

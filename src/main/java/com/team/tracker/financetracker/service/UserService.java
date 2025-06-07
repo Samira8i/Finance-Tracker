@@ -1,6 +1,5 @@
 package com.team.tracker.financetracker.service;
 
-
 import com.team.tracker.financetracker.exceptions.UserNotFoundException;
 import com.team.tracker.financetracker.model.User;
 import com.team.tracker.financetracker.repository.UserRepository;

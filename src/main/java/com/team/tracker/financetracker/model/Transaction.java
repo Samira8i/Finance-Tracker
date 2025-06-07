@@ -1,6 +1,5 @@
 package com.team.tracker.financetracker.model;
 
-
 import com.team.tracker.financetracker.enums.TransactionType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -78,4 +77,3 @@ public class Transaction {
         this.user = user;
     }
 }
-

@@ -1,6 +1,5 @@
 package com.team.tracker.financetracker.model;
 
-
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -59,4 +58,3 @@ public class User {
         return creationDate;
     }
 }
-
