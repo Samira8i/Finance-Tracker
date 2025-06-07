@@ -1,8 +1,6 @@
 package com.team.tracker.financetracker.security;
 
-
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
@@ -63,7 +61,6 @@ public class JwtTokenUtil {
                 .getSubject();
     }
 
-
     public Date extractExpiritation(@NonNull String token){
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -72,5 +69,4 @@ public class JwtTokenUtil {
                 .getBody()
                 .getExpiration();
     }
-    
 }

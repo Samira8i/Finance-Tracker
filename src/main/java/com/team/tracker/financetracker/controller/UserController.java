@@ -1,11 +1,9 @@
 package com.team.tracker.financetracker.controller;
 
-import com.team.tracker.financetracker.repository.UserRepository;
 import com.team.tracker.financetracker.security.CustomUserDetailsService;
 import com.team.tracker.financetracker.security.JwtTokenUtil;
 import com.team.tracker.financetracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.team.tracker.financetracker.model.User;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,8 +21,6 @@ public class    UserController {
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
     private final CustomUserDetailsService customUserDetailsService;
-
-
 
     @Autowired
     public UserController(AuthenticationManager authenticationManager, UserService userService, JwtTokenUtil jwtTokenUtil, CustomUserDetailsService customUserDetailsService) {
@@ -65,7 +61,5 @@ public class    UserController {
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(404).body("Пользователь не найден");
         }
-
     }
 }
-
