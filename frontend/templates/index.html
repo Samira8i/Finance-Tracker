@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Баланс | Трекер финансов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../static/style_index.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<!-- Боковое меню -->
+<div class="side-menu">
+  <div class="menu-item" title="Добавить операцию" id="addOperationBtn">
+    <img src="../media/plus.png" alt="" />
+  </div>
+  <div class="menu-item active" title="Дом">
+    <img src="../media/home.png" alt="" />
+  </div>
+  <a href="history.html"> <div class="menu-item" title="История">
+    <img src="../media/history.png" alt="" />
+  </div></a>
+  <a href="#" onclick="logout(); return false;">
+    <div class="menu-item" title="Выход">
+      <img src="../media/exit.png" alt="" />
+    </div>
+  </a>
+</div>
+
+<div class="container">
+  <div class="balance-header">
+    <h1 class="balance-title">Баланс</h1>
+  </div>
+
+  <div class="balance-amount balance-positive" id="balanceAmount">786 345,96 ₽</div>
+
+  <!-- Комбинированный график сверху -->
+  <div class="main-chart-container">
+    <div class="chart-box combined-chart">
+      <div class="chart-title">Доходы и расходы</div>
+      <div class="chart-wrapper">
+        <canvas id="combinedChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для добавления операций -->
+<div class="modal" id="operationModal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+
+    <div class="tabs">
+      <div class="tab" data-tab="income">Доход</div>
+      <div class="tab active" data-tab="expense">Расход</div>
+    </div>
+
+    <input type="number" class="amount-input" id="operationAmount" placeholder="Введите сумму">
+
+    <div class="modal-categories" id="modalCategories">
+      <!-- Категории будут подгружаться -->
+    </div>
+
+    <button class="submit-btn" id="submitOperation">Отправить</button>
+  </div>
+</div>
+<script src="../js/index.js"></script>
+</body>
+</html>

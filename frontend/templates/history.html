@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>История операций | Трекер финансов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../static/style_history.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<!-- Боковое меню -->
+<div class="side-menu">
+    <a href="index.html" class="menu-item" title="Дом">
+        <img src="../media/home.png" alt="" />
+    </a>
+    <a href="#" class="menu-item active" title="История">
+        <img src="../media/history.png" alt="" />
+    </a>
+    <a href="main.html" class="menu-item" title="Выход">
+        <img src="../media/exit.png" alt="" />
+    </a>
+</div>
+
+<div class="container">
+    <!-- Основной контент -->
+    <div class="content">
+        <div class="history-header">
+            <h1 class="history-title">История операций</h1>
+        </div>
+
+        <!-- История операций -->
+        <div class="operations-container" id="operationsContainer">
+            <!-- Операции будут загружаться динамически -->
+        </div>
+    </div>
+</div>
+
+<script src="../js/history.js"></script>
+
+</body>
+</html>
