@@ -67,9 +67,6 @@ spring.security.user.name=admin
 spring.security.user.password=admin
 ```
 
-## Доступ
-Приложение доступно по адресу: `http://localhost:8080`
-
 ## Лицензия
 MIT License. Подробнее см. в файле [LICENSE](LICENSE).
 ```
